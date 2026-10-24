@@ -8,3 +8,5 @@ web/assets/art/
 web/data/collection.json
 DEPLOY.local.md
 TERMS-*.draft.md
+
+.vercel
