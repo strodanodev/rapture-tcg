@@ -1,0 +1,10 @@
+node_modules/
+rulesets/
+.vercel/
+collection/
+# Rapture art and the collection snapshot are (c) LitVM Games: fetched at build time, never committed
+collection/
+web/assets/art/
+web/data/collection.json
+DEPLOY.local.md
+TERMS-*.draft.md

@@ -1,0 +1,8 @@
+# Deploy only the built site (web/), including the fetched art the repo doesn't track
+node_modules
+collection
+games
+scripts
+.claude
+.github
+rulesets

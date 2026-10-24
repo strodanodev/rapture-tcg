@@ -1,0 +1,29 @@
+{
+  "name": "rapture-tcg",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rapture TCG: a trading card game where the Rapture ARC 1 NFTs are your champions and cards. Built with Tessaract.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strodanodev/rapture-tcg.git"
+  },
+  "scripts": {
+    "fetch-collection": "node scripts/fetch-collection.mjs",
+    "web": "tessaract web games/rapture-duel.game.json --collection collection/assets/rapture/cards.json",
+    "build": "npm run fetch-collection && npm run web",
+    "rebuild-cards": "node scripts/build.mjs",
+    "sim": "tessaract sim games/rapture-duel.game.json --matches 400 --decks mixed --strict",
+    "title": "tessaract title games/rapture-duel.game.json",
+    "dev": "tessaract dev",
+    "relay": "tessaract relay"
+  },
+  "devDependencies": {
+    "tessaract": "github:strodanodev/tessaract"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.10.1"
+}

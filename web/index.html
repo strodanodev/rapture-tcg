@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Rapture TCG</title>
+<meta name="description" content="A trading card game made with Tessaract: on-chain ERC-6699 stats make the champions, every match replays, and LitNode settles it." />
+<meta name="theme-color" content="#050409" />
+<meta name="color-scheme" content="dark" />
+<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./styles/theme.css" />
+<link rel="stylesheet" href="./styles/arena.css" />
+<link rel="stylesheet" href="./styles/cards.css" />
+<link rel="stylesheet" href="./styles/screens.css" />
+<link rel="stylesheet" href="./styles/battle.css" />
+<!-- Every module and the game data, fetched in parallel with the page instead of one import level at a time
+     (test/web.test.mjs keeps this list equal to the files in ui/ and lib/). -->
+<link rel="preload" href="./data/game.json" as="fetch" crossorigin />
+<link rel="preload" href="./data/collection.json" as="fetch" crossorigin />
+<link rel="modulepreload" href="./app.js" />
+<link rel="modulepreload" href="./engine/tessaract.js" />
+<link rel="modulepreload" href="./ui/arena.js" />
+<link rel="modulepreload" href="./ui/cards.js" />
+<link rel="modulepreload" href="./ui/dom.js" />
+<link rel="modulepreload" href="./ui/icons.js" />
+<link rel="modulepreload" href="./ui/result.js" />
+<link rel="modulepreload" href="./ui/router.js" />
+<link rel="modulepreload" href="./ui/widgets.js" />
+<link rel="modulepreload" href="./ui/screens/deck.js" />
+<link rel="modulepreload" href="./ui/screens/forge.js" />
+<link rel="modulepreload" href="./ui/screens/home.js" />
+<link rel="modulepreload" href="./ui/screens/match.js" />
+<link rel="modulepreload" href="./ui/screens/meta.js" />
+<link rel="modulepreload" href="./ui/screens/select.js" />
+<link rel="modulepreload" href="./ui/screens/versus.js" />
+<link rel="modulepreload" href="./lib/abi.js" />
+<link rel="modulepreload" href="./lib/chain.js" />
+<link rel="modulepreload" href="./lib/holdings.js" />
+<link rel="modulepreload" href="./lib/tiers.js" />
+<link rel="modulepreload" href="./lib/util.js" />
+<link rel="modulepreload" href="./lib/wallet.js" />
+<style>
+  /* the boot screen paints before any script or stylesheet arrives */
+  html, body { margin: 0; height: 100%; background: #050409; overflow: hidden; }
+  #boot { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 42%, #1c1424 0%, #07060b 62%, #030205 100%); color: #ffc95e; font-family: 'Cinzel', Georgia, 'Palatino Linotype', serif; transition: opacity 0.8s ease, visibility 0.8s; }
+  #boot.done { opacity: 0; visibility: hidden; }
+  #boot .b-in { display: grid; justify-items: center; gap: 18px; width: min(360px, 78vw); text-align: center; }
+  #boot .b-emb { position: relative; width: 132px; height: 132px; }
+  #boot .b-emb svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #boot .b-spin { animation: bspin 6s linear infinite; opacity: 0.85; }
+  #boot .b-glow { position: absolute; inset: -40%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 190, 80, 0.22), transparent 62%); animation: bpulse 2.4s ease-in-out infinite; }
+  #boot h1 { margin: 6px 0 0; font-weight: 600; font-size: 28px; letter-spacing: 0.32em; text-transform: uppercase; color: #fff1cc; text-indent: 0.32em; }
+  #boot .b-track { width: 100%; height: 2px; background: rgba(255, 201, 94, 0.14); overflow: hidden; }
+  #boot #boot-bar { height: 100%; background: linear-gradient(90deg, #8a5c1c, #ffe2a0, #8a5c1c); transform: scaleX(0.02); transform-origin: left; transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 0 12px #ffc95e; }
+  #boot #boot-text { font: 11px/1.4 system-ui, sans-serif; letter-spacing: 0.28em; text-transform: uppercase; color: #9a8f7a; min-height: 1.4em; margin: 0; }
+  @keyframes bspin { to { transform: rotate(360deg); } }
+  @keyframes bpulse { 50% { opacity: 0.45; transform: scale(0.92); } }
+  @media (prefers-reduced-motion: reduce) { #boot .b-spin, #boot .b-glow { animation: none; } }
+</style>
+</head>
+<body>
+<div id="arena" aria-hidden="true"></div>
+<main id="ui"></main>
+
+<div id="boot" role="progressbar" aria-label="Loading">
+  <div class="b-in">
+    <div class="b-emb">
+      <div class="b-glow"></div>
+      <svg class="b-spin" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="57" stroke-width="1" stroke-dasharray="2 6" /><path d="M60 1v12M60 107v12M1 60h12M107 60h12" stroke-width="2" /></svg>
+      <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-linejoin="round"><circle cx="60" cy="60" r="47" stroke-width="2.2" /><path d="M38 34h26a3 3 0 0 1 3 3v46a3 3 0 0 1-3 3H38a3 3 0 0 1-3-3V37a3 3 0 0 1 3-3z" transform="rotate(-12 51 60)" stroke-width="2.2" fill="currentColor" fill-opacity=".06" /><path d="M56 34h26a3 3 0 0 1 3 3v46a3 3 0 0 1-3 3H56a3 3 0 0 1-3-3V37a3 3 0 0 1 3-3z" transform="rotate(10 69 60)" stroke-width="2.2" fill="currentColor" fill-opacity=".12" /><path d="M69 48 78 60 69 72 60 60z" stroke-width="2.4" fill="currentColor" fill-opacity=".3" /></svg>
+    </div>
+    <h1>Tessaract</h1>
+    <div class="b-track"><div id="boot-bar"></div></div>
+    <p id="boot-text">Shuffling the deck</p>
+  </div>
+</div>
+
+<noscript><p class="noscript">This game needs JavaScript.</p></noscript>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

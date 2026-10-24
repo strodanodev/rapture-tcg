@@ -1,0 +1,12 @@
+Rapture TCG
+Copyright (c) LitVM Games
+
+The source code in this repository is licensed under the Apache License 2.0 (LICENSE).
+
+NOT covered by that license: the Rapture characters, their names, lore, card art and 3D avatars, which are
+(c) LitVM Games, all rights reserved. The art and the collection snapshot are not in this repository: they are
+downloaded from https://forge.litvm.games at build time (npm run fetch-collection) and shown under LitVM Games'
+own terms. games/rapture-duel.game.json reproduces Rapture names and traits only to describe the cards.
+
+To use Rapture characters in your own project, open a "Rapture character use request" issue.
+Built with Tessaract (https://github.com/strodanodev/tessaract), Apache-2.0.
