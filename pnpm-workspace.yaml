@@ -2,5 +2,5 @@ allowBuilds:
   esbuild: true
   # The SDK installs from its GitHub release tag and builds its CLI on install (prepare). pnpm only allows a
   # git package by its exact tarball: when bumping the SDK tag in package.json, update this line to match.
-  "tessaract@https://codeload.github.com/strodanodev/tessaract/tar.gz/776910f40f854945b141fb4b4238eea2ee3d2248": true
+  "tessaract@https://codeload.github.com/strodanodev/tessaract/tar.gz/2013a7ab7047a05fad91e3cc04c0119d77967ec2": true
 verifyDepsBeforeRun: false
