@@ -20,7 +20,7 @@
     "relay": "tessaract relay"
   },
   "devDependencies": {
-    "tessaract": "github:strodanodev/tessaract#v0.9.2"
+    "tessaract": "github:strodanodev/tessaract#v0.9.3"
   },
   "engines": {
     "node": ">=22"
