@@ -29,6 +29,6 @@ export function forgeScreen(app) {
         h("a", { class: "btn primary", href: "https://github.com/strodanodev/tessaract", rel: "noopener" }, icon("code"), "Get Tessaract"),
         h("a", { class: "btn ghost", href: "https://github.com/strodanodev/tessaract#readme", rel: "noopener" }, icon("scroll"), "Read the guide")),
       h("p", { class: "hint fine" }, "Rapture characters in this demo are © LitVM Games and not part of the open-source license. To use them in your own game, ",
-        h("a", { href: "https://github.com/strodanodev/tessaract/issues/new?labels=rapture-license&title=Rapture%20character%20use%20request", rel: "noopener", text: "request permission" }), ".")));
+        h("a", { href: "https://github.com/strodanodev/rapture-tcg/issues/new?labels=rapture-license&title=Rapture%20character%20use%20request", rel: "noopener", text: "request permission" }), ".")));
   return { id: "forge", el, enter() { app.arena.setMood("menu"); stagger(steps); } };
 }
