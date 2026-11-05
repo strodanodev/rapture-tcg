@@ -4,6 +4,9 @@
 #   blender -b --factory-startup --python scripts/build-arenas.py -- web/assets/arena renders --no-render [--only valhalla]
 # Files are written as <realm>.<VERSION>.glb, and web/assets/arena/arena.json names them: the deploy caches assets for
 # a year, so a rebuilt arena needs a new file name. Bump VERSION on every rebuild.
+# Textures: the CC0 Poly Haven sets in the Rapture Chess repo's scripts/textures (see its README.txt for the source
+# URLs), read from ../rapture-chess beside this game in the theforge monorepo. Standing alone, put that folder there or
+# change TEX below.
 # Valhalla: a round hall of carved stone pillars and arches on flagstones, banners, braziers, a rune circle round
 #   a polished dais (the game draws its mirror there).
 # Underworld: a basalt crater on burned ground, obsidian spires, a lava moat with bridges, bone totems, stalactites
