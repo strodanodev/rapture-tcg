@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 2
+VERSION = 3
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -402,10 +402,14 @@ def underworld():
         o.rotation_euler = (math.radians(random.uniform(-8, 8)), math.radians(random.uniform(4, 14)), a)
         # the ember crack: a band just inside the spire's surface at that height, carved by the same world-space noise
         # in the same pose, so it follows the glass and glows only where it breaks through, as cracks
-        r_band = 1.3 + (0.9 - 1.3) * ((0.45 - 0.25) / 0.25) - 0.06
-        e = spin(f"SpireEmber_{i}", [(r_band - 0.05, h * 0.42), (r_band, h * 0.42), (r_band, h * 0.5), (r_band - 0.05, h * 0.5)], EMBER, segments=9, loc=(x, y, -0.6), rot=a, parent=root)
-        e.rotation_euler = o.rotation_euler
-        sculpt(e, 0.55, 1.1, levels=2, kind="VORONOI")
+        # two narrow cracks at varied heights, so they read as fissures, not a band of tape round every spire
+        for k, (f0, f1) in enumerate(((0.28, 0.31), (0.5, 0.52))):
+            f0 += random.uniform(-0.08, 0.08); f1 = f0 + (f1 - (0.28 if k == 0 else 0.5))
+            rad = lambda f: (1.6 + (1.3 - 1.6) * f / 0.25) if f < 0.25 else (1.3 + (0.9 - 1.3) * (f - 0.25) / 0.25) if f < 0.5 else (0.9 + (0.5 - 0.9) * (f - 0.5) / 0.28)
+            r0 = rad((f0 + f1) / 2) - 0.05
+            e = spin(f"SpireEmber_{i}_{k}", [(r0 - 0.05, h * f0), (r0, h * f0), (r0, h * f1), (r0 - 0.05, h * f1)], EMBER, segments=9, loc=(x, y, -0.6), rot=a, parent=root)
+            e.rotation_euler = o.rotation_euler
+            sculpt(e, 0.55, 1.1, levels=2, kind="VORONOI")
     # lava falls: tall emissive slabs on two far spires
     for i, a in enumerate((0.9, 3.9)):
         box(f"LavaFall_{i}", (0.6, 0.12, 9.0), (20.5 * math.cos(a), 20.5 * math.sin(a), 4.0), LAVA, rot=(0, 0, a), parent=root)
