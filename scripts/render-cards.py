@@ -11,7 +11,7 @@ import bpy, bmesh, json, math, os, random, sys
 _args = sys.argv[sys.argv.index("--") + 1:]
 game_path, out_dir = _args[:2]
 ONLY = _args[_args.index("--only") + 1] if "--only" in _args else None
-VERSION = 1
+VERSION = 2
 W, H = 800, 584   # the card's art window is about 1.37:1
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 ELEMENT = {   # glow colour, dim colour for the backdrop
@@ -148,7 +148,7 @@ def backdrop(color):
     out = next(n for n in nt.nodes if n.type == "OUTPUT_MATERIAL")
     coord = nt.nodes.new("ShaderNodeTexCoord")
     mapping = nt.nodes.new("ShaderNodeMapping")
-    mapping.inputs["Scale"].default_value = (2.4, 3.6, 2.4)   # plane coords are +-0.5: this reaches 0 near the edges
+    mapping.inputs["Scale"].default_value = (5.1, 8.8, 2.4)   # plane coords are +-0.5: the glow fades out well inside the wall
     grad = nt.nodes.new("ShaderNodeTexGradient")
     grad.gradient_type = "SPHERICAL"
     em = nt.nodes.new("ShaderNodeEmission")
@@ -161,12 +161,12 @@ def backdrop(color):
     nt.links.new(grad.outputs["Fac"], mul.inputs[0])
     strength = nt.nodes.new("ShaderNodeMath")
     strength.operation = "MULTIPLY"
-    strength.inputs[1].default_value = 0.7
+    strength.inputs[1].default_value = 0.55
     nt.links.new(mul.outputs[0], strength.inputs[0])
     nt.links.new(strength.outputs[0], em.inputs["Strength"])
     nt.links.new(em.outputs["Emission"], out.inputs["Surface"])
     wall = prim("plane", "Backdrop", m, loc=(0, 6.0, 2.0), rot=(math.radians(90), 0, 0), size=1)
-    wall.scale = (16, 9, 1)
+    wall.scale = (34, 22, 1)   # wide and tall: low cameras must not see past its edges
     return wall
 
 
@@ -255,9 +255,9 @@ def buff(c, base):
 
 
 def energy(c, base):
-    crystal("Crystal", 1.5, 0.38, glass("cr", c, 1.6), (0, 0, base + 1.25), (0, 0, 0.3))
+    crystal("Crystal", 1.5, 0.38, glass("cr", c, 0.7), (0, 0, base + 1.25), (0, 0, 0.3))
     for k, tilt in enumerate((65, 110)):
-        t = prim("torus", f"Orbit{k}", emis("orbit", c, 10), loc=(0, 0, base + 1.25), major_radius=0.85, minor_radius=0.015)
+        t = prim("torus", f"Orbit{k}", emis("orbit", c, 4), loc=(0, 0, base + 1.25), major_radius=0.85, minor_radius=0.015)
         t.rotation_euler = (math.radians(tilt), math.radians(20 * (k * 2 - 1)), 0)
 
 
@@ -318,6 +318,115 @@ def key_for(card):
     return op if op in EMBLEM else "energy"
 
 
+# ---------------------------------------------------------------------------- settings (one per element)
+def node_mat(name):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    return m, m.node_tree, principled(m)
+
+
+def env_lava(glow):
+    """A molten pool: emissive noise for the lava, dark rock islands standing in it."""
+    m, nt, p = node_mat("lava")
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 2.2
+    noise.inputs["Detail"].default_value = 8
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].position, ramp.color_ramp.elements[0].color = 0.52, (0.015, 0.004, 0.0, 1)
+    ramp.color_ramp.elements[1].position, ramp.color_ramp.elements[1].color = 0.58, (1.0, 0.32, 0.04, 1)
+    nt.links.new(noise.outputs["Fac"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], p.inputs["Emission Color"])
+    p.inputs["Emission Strength"].default_value = 2.4
+    p.inputs["Base Color"].default_value = (0.02, 0.01, 0.01, 1)
+    prim("plane", "Lava", m, size=16)
+    rock = stone("isle", "rock_wall_08", (0.22, 0.18, 0.18), 1.4)
+    r = random.Random(5)
+    for i in range(9):
+        a = r.uniform(0, math.tau)
+        d = r.uniform(1.6, 4.5)
+        isle = prim("ico_sphere", f"Isle{i}", rock, loc=(math.cos(a) * d, abs(math.sin(a)) * d + 0.6, -0.15),
+                    scale=(r.uniform(0.4, 0.9), r.uniform(0.4, 0.9), r.uniform(0.2, 0.45)), subdivisions=2)
+        rough_up(isle, 0.15, 0.4, 1)
+
+
+def env_water(glow):
+    """Dark, glossy water with ripples (a noise bump), a few wet stones breaking it."""
+    m, nt, p = node_mat("water")
+    p.inputs["Base Color"].default_value = (0.004, 0.012, 0.02, 1)
+    p.inputs["Roughness"].default_value = 0.04
+    noise = nt.nodes.new("ShaderNodeTexNoise")
+    noise.inputs["Scale"].default_value = 6
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.35
+    nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], p.inputs["Normal"])
+    prim("plane", "Water", m, size=16)
+    rock = stone("wet", "rock_face_03", (0.25, 0.3, 0.32), 1.2)
+    r = random.Random(8)
+    for i in range(6):
+        a = r.uniform(0, math.pi)
+        d = r.uniform(2.0, 4.5)
+        st = prim("ico_sphere", f"Stone{i}", rock, loc=(math.cos(a) * d, math.sin(a) * d + 0.8, -0.1), scale=[r.uniform(0.25, 0.55)] * 3, subdivisions=2)
+        rough_up(st, 0.1, 0.3, 1)
+
+
+def env_earth(glow):
+    """Mossy rock ground split by a field of glowing crystal shards."""
+    prim("plane", "Ground", stone("moss", "rock_face_03", (0.32, 0.4, 0.3), 1.0), size=16)
+    shard_mat = glass("shard", glow, 1.2)
+    r = random.Random(3)
+    for i in range(16):
+        a = r.uniform(0.15, math.pi - 0.15)
+        d = r.uniform(1.4, 4.2)
+        crystal(f"Shard{i}", r.uniform(0.4, 1.3), r.uniform(0.07, 0.16), shard_mat, (math.cos(a) * d, math.sin(a) * d + 0.4, 0.15),
+                (r.uniform(-0.4, 0.4), r.uniform(-0.4, 0.4), r.uniform(0, 3)))
+
+
+def env_metal(glow):
+    """A forge floor of riveted iron plates, with cast gears lying about."""
+    m, nt, p = node_mat("plates")
+    p.inputs["Base Color"].default_value = (0.12, 0.11, 0.12, 1)
+    p.inputs["Metallic"].default_value = 1.0
+    p.inputs["Roughness"].default_value = 0.42
+    brick = nt.nodes.new("ShaderNodeTexBrick")
+    brick.inputs["Scale"].default_value = 2.5
+    brick.inputs["Mortar Size"].default_value = 0.015
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.6
+    nt.links.new(brick.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], p.inputs["Normal"])
+    prim("plane", "Plates", m, size=16)
+    iron = metal("iron", (0.35, 0.3, 0.27), 0.45)
+    r = random.Random(4)
+    for i in range(5):
+        a = r.uniform(0.3, math.pi - 0.3)
+        d = r.uniform(2.2, 4.2)
+        g = prim("torus", f"Gear{i}", iron, loc=(math.cos(a) * d, math.sin(a) * d + 0.6, 0.05), major_radius=r.uniform(0.3, 0.6), minor_radius=0.08)
+        g.rotation_euler = (r.uniform(-0.2, 0.2), r.uniform(-0.2, 0.2), 0)
+
+
+def env_neutral(glow):
+    """A stone altar floor ringed by candles."""
+    prim("plane", "Floor", stone("altar", "medieval_blocks_05", (0.5, 0.45, 0.4), 1.4), size=16)
+    wax = bpy.data.materials.new("wax")
+    wax.use_nodes = True
+    principled(wax).inputs["Base Color"].default_value = (0.85, 0.8, 0.7, 1)
+    flame = emis("flame", (1.0, 0.7, 0.3), 30, lit=False)
+    for i in range(7):
+        a = math.pi * (0.1 + 0.8 * i / 6)
+        x, y = math.cos(a) * 2.6, math.sin(a) * 2.6 * 0.6 + 0.9
+        h = 0.3 + 0.25 * ((i * 37) % 5) / 5
+        prim("cylinder", f"Candle{i}", wax, loc=(x, y, h / 2), radius=0.07, depth=h)
+        prim("uv_sphere", f"Flame{i}", flame, loc=(x, y, h + 0.07), radius=0.045, scale=(1, 1, 1.8))
+
+
+ENV = {"lava": env_lava, "water": env_water, "earth": env_earth, "metal": env_metal, "neutral": env_neutral}
+# per effect: where the camera stands and its lens; it always tracks the emblem's centre
+SHOT = {"bolt": ((0.4, -6.0, 0.55), 30), "quake": ((0.0, -6.2, 3.8), 28), "buff": ((1.5, -5.8, 1.6), 48),
+        "energy": ((0.0, -4.6, 1.5), 52), "shield": ((-1.3, -6.0, 1.5), 44), "draw": ((0.0, -5.4, 2.8), 42),
+        "unit": ((0.9, -5.2, 1.9), 46), "summon": ((0.0, -6.0, 1.7), 40), "idol": ((-0.8, -5.0, 1.2), 44)}
+
+
 # ---------------------------------------------------------------------------- the stage
 def scene_for(card):
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -336,9 +445,8 @@ def scene_for(card):
     world.use_nodes = True
     next(n for n in world.node_tree.nodes if n.type == "BACKGROUND").inputs[0].default_value = (*dim, 1)
 
-    # ground: dark stone under everything, fading into the dark
-    ground = prim("plane", "Ground", stone("ground", "rock_face_03", (0.3, 0.28, 0.28), 1.0), size=14)
-    # a backdrop glow behind the emblem
+    # the element's own setting under the emblem, and a soft glow behind it
+    ENV.get(card.get("element") or "neutral", env_neutral)(glow)
     backdrop(glow)
     base = pedestal() if card["type"] == "relic" else 0.0
     key = key_for(card)
@@ -365,9 +473,14 @@ def scene_for(card):
 
     cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
     bpy.context.collection.objects.link(cam)
-    cam.data.lens = 42
-    cam.location = (0, -6.4, base + 1.55)
-    cam.rotation_euler = (math.radians(86), 0, 0)
+    (cx, cy, cz), lens = SHOT.get(key, ((0, -6.4, 1.55), 42))
+    cam.data.lens = lens
+    cam.location = (cx, cy, base + cz)
+    aim = bpy.data.objects.new("Aim", None)
+    bpy.context.collection.objects.link(aim)
+    aim.location = (0, 0, base + (0.55 if key == "quake" else 1.25))
+    track = cam.constraints.new("TRACK_TO")
+    track.target, track.track_axis, track.up_axis = aim, "TRACK_NEGATIVE_Z", "UP_Y"
     sc.camera = cam
 
     # glare: the hot parts bloom
