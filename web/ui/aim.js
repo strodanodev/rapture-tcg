@@ -20,7 +20,7 @@ export function createAim(root) {
   const draw = () => {
     if (!source || !source.isConnected || !fine.matches) { layer.classList.remove("on"); return; }
     const s = source.getBoundingClientRect();
-    const sx = s.left + s.width / 2, sy = s.top + s.height * 0.35;
+    const sx = s.left + s.width / 2, sy = s.top + s.height * 0.1;   // from the top edge, not across the source's own art
     // over a valid target the arrow snaps to its centre; elsewhere it follows the pointer (or points up, before it moves)
     const hit = px === null ? null : document.elementFromPoint(px, py)?.closest(".target");
     let ex = px ?? sx, ey = py ?? sy - 160;
@@ -32,7 +32,7 @@ export function createAim(root) {
     const d = `M${sx.toFixed(1)},${sy.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}`;
     line.setAttribute("d", d); glow.setAttribute("d", d);
     // the head points along the curve's last tangent
-    const a = Math.atan2(ey - cy, ex - cx), k = 30;
+    const a = Math.atan2(ey - cy, ex - cx), k = 40;
     const p = (r, t) => `${(ex + Math.cos(a + t) * r).toFixed(1)},${(ey + Math.sin(a + t) * r).toFixed(1)}`;
     head.setAttribute("d", `M${p(4, 0)} L${p(k, Math.PI * 0.84)} L${p(k * 0.45, Math.PI)} L${p(k, -Math.PI * 0.84)} Z`);
     ring.setAttribute("cx", ex.toFixed(1)); ring.setAttribute("cy", ey.toFixed(1));

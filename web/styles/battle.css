@@ -141,7 +141,7 @@
   .deck-pile.empty i { opacity: 0.25; }
   .plate.top .deck-pile { right: auto; left: calc(100% + 22px); }   /* the foe's deck sits with the foe's hand, clear of the narration */
   .mana-bar { display: grid; justify-items: start; gap: 4px; position: absolute; left: calc(100% + 18px); top: 50%; transform: translateY(-50%); padding: 8px 14px 9px; border-radius: 6px; background: linear-gradient(180deg, rgba(14, 22, 40, 0.92), rgba(6, 9, 18, 0.92)); box-shadow: inset 0 0 0 1px rgba(110, 175, 255, 0.35), 0 10px 26px rgba(0, 0, 0, 0.55); }
-  .mana-bar b { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: 0.04em; color: #d6f0ff; text-shadow: 0 0 14px rgba(80, 170, 255, 0.8); }
+  .mana-bar b { white-space: nowrap; font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: 0.04em; color: #d6f0ff; text-shadow: 0 0 14px rgba(80, 170, 255, 0.8); }
   .mana-gems { display: flex; gap: 4px; }
   .mana-gems i { width: 15px; height: 20px; clip-path: polygon(50% 0, 100% 35%, 50% 100%, 0 35%); background: rgba(120, 180, 255, 0.22); }
   .mana-gems i.full { background: linear-gradient(180deg, #e6f6ff, #3a9cf0 55%, #164e9a); filter: drop-shadow(0 0 5px #4fb0ff); }
@@ -152,8 +152,8 @@
 .aim.on { opacity: 1; }
 .aim[data-mode='foe'] { --aim: #ff5a46; }
 .aim[data-mode='ally'] { --aim: #6fe39a; }
-.aim-glow { fill: none; stroke: var(--aim); stroke-width: 22; stroke-linecap: round; opacity: 0.3; filter: blur(6px); }
-.aim-line { fill: none; stroke: var(--aim); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 16 9; animation: aimFlow 0.5s linear infinite; filter: drop-shadow(0 0 4px var(--aim)); }
+.aim-glow { fill: none; stroke: #120a04; stroke-width: 17; stroke-linecap: round; opacity: 0.75; }   /* a dark edge under the body, so it reads on any art */
+.aim-line { fill: none; stroke: var(--aim); stroke-width: 11; stroke-linecap: round; stroke-dasharray: 22 10; animation: aimFlow 0.5s linear infinite; filter: drop-shadow(0 0 4px var(--aim)); }
 .aim-head { fill: var(--aim); stroke: #1a0e04; stroke-width: 1.5; filter: drop-shadow(0 0 6px var(--aim)); }
 .aim-ring { fill: none; stroke: var(--aim); stroke-width: 2.5; opacity: 0; }
 .aim:not([data-mode='free']) .aim-ring { opacity: 0.9; animation: aimRing 0.9s ease-out infinite; transform-box: fill-box; transform-origin: center; }
@@ -430,3 +430,35 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
   .pl-face { border-radius: 50% 50% 14% 14% / 42% 42% 10% 10%; border-width: 3px; border-color: color-mix(in srgb, var(--el) 55%, var(--gold-1)); }
   .pl-face img { object-position: 50% 14%; }
 }
+/* ---- battle review: hierarchy (the life totals and the hand over the decoration) ---- */
+/* life is red for both champions (blue reads as mana), and it is the largest number at the plate */
+.plate.bottom .pl-life { background: radial-gradient(circle at 40% 30%, #ffb3a0, #d5301c 50%, #5a0a04 90%); }
+@media (min-width: 900px) and (min-height: 600px) {
+  .pl-life { min-width: 50px; height: 50px; right: -18px; bottom: -12px; font-size: 25px; -webkit-text-stroke: 1px rgba(0, 0, 0, 0.55); box-shadow: 0 0 0 3px #0b0910, 0 6px 14px rgba(0, 0, 0, 0.6); }
+  /* the deck piles, the foe's fan and the mana readout carry these: no second copy in the chips */
+  .chip-mini.c-deck, .chip-mini.c-hand, .plate.bottom .pl-energy { display: none; }
+  .aim-prompt { position: absolute; left: 50%; bottom: calc(100% + 16px); transform: translateX(-50%); margin: 0; padding: 7px 16px; white-space: nowrap; border-radius: 4px; font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: 0.06em; color: var(--gold-0); background: rgba(8, 6, 12, 0.85); box-shadow: inset 0 0 0 1px var(--gold-3), 0 8px 22px rgba(0, 0, 0, 0.55); pointer-events: none; }
+  .aim-prompt:empty { display: none; }
+  .match.aiming .hud-status { visibility: hidden; }
+}
+.aim-prompt { display: none; }
+@media (min-width: 900px) and (min-height: 600px) { .aim-prompt { display: block; } .aim-prompt:empty { display: none; } }
+.pl-energy .bonus, .mana-bar .bonus { color: var(--gold-1); text-shadow: 0 0 10px rgba(255, 201, 94, 0.7); }
+/* the hand: side by side while it fits, so every card's stats and rules show; it overlaps only past ~1300 px */
+@media (min-width: 1100px) {
+  .hand .tcard { margin-left: clamp(calc(var(--w) * -0.3), calc((min(100vw - 420px, 1320px) - var(--n, 1) * var(--w)) / max(var(--n, 1) - 1, 1)), 10px); }
+}
+/* what you can play glows; what you can't recedes */
+.hand .tcard.can { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 0 3px #5cff8a, 0 0 16px rgba(92, 255, 138, 0.7); }
+.hand .tcard.dead { filter: brightness(0.6) saturate(0.5); }
+/* nothing left to play: End turn turns green and pulses (it looked the same as a turn with plays left) */
+.end-turn.ready { background: radial-gradient(circle at 50% 30%, #d4ffe0, #43d47e 45%, #17723c 80%); animation: endReadyGreen 1.2s ease-in-out infinite; }
+.end-turn.ready .et-label { color: #06240f; }
+@keyframes endReadyGreen { 50% { box-shadow: 0 0 0 3px #0b0910, 0 0 0 5px #8dffb2, 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 54px rgba(67, 212, 126, 0.85); } }
+/* a quieter board: the rune ring and the empty sockets step back behind the units and the totals */
+.tm-glyphs { opacity: 0.45; animation: runeQuiet 4.5s ease-in-out infinite; }
+@keyframes runeQuiet { 50% { opacity: 0.3; } }
+.foe-lane .slot, .my-lane .slot { border-color: rgba(255, 255, 255, 0.09); background: rgba(6, 6, 12, 0.22); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.45); }
+/* the battle menu button sits in the corner, not on the End turn gear's teeth */
+@media (min-width: 761px) { .dock > .icon-btn { position: fixed; top: calc(var(--safe-t) + 14px); right: calc(var(--safe-r) + 18px); } }
+.pause-gap { width: 100%; height: 1px; margin: 6px 0; border: 0; background: var(--line); }

@@ -2,7 +2,7 @@
 import { h, icon, toast } from "./dom.js";
 
 const SOUND_NEXT = { on: "fx", fx: "off", off: "on" };
-const SOUND_LABEL = { on: "Sound on", fx: "Effects only", off: "Sound off" };
+const SOUND_LABEL = { on: "Sound: all", fx: "Sound: effects only", off: "Sound: off" };   // the state, not an action
 const SOUND_ICON = { on: "sound", fx: "soundFx", off: "mute" };
 /** Cycles the sound: everything, effects only, off (S toggles too). `block` makes a labelled menu row. */
 export function soundButton(app, { block = false } = {}) {

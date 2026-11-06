@@ -70,7 +70,7 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
 .u-atk, .u-hp { position: absolute; bottom: 0; z-index: 2; display: grid; place-items: center; width: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); height: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); font-family: var(--font-display); font-weight: 700; font-size: clamp(12px, calc(var(--u, 84px) * 0.15), 19px); color: #fff; text-shadow: 0 1px 3px #000; }
 .u-atk { left: -4px; clip-path: polygon(50% 0, 100% 30%, 82% 100%, 18% 100%, 0 30%); background: radial-gradient(circle at 40% 30%, #ffe2a0, #d9982f 50%, #6a4010 90%); }
 .u-hp { right: -4px; border-radius: 50% 50% 45% 45% / 40% 40% 60% 60%; background: radial-gradient(circle at 40% 30%, #ffb3a0, #d5301c 50%, #5a0a04 90%); }
-.u-atk.up, .u-hp.up { color: #b8ffcc; }
+.u-atk.up, .u-hp.up { color: #fff; text-shadow: 0 0 6px #3fff8a, 0 0 2px #0a3a18, 0 1px 2px #000; }   /* white with a green glow: pale green on gold was unreadable */
 .u-hp.hurt { color: #ffd0c8; }
 .u-name { position: absolute; left: 14%; right: 14%; bottom: 0; height: 18px; display: none; }
 /* a unit's name shows on its nameplate while you point at it, pick it or aim at it (mouse; touch holds to read) */

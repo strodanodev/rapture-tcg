@@ -112,7 +112,8 @@ export function matchScreen(app) {
   const foeDeck = deckPile(), myDeck = deckPile();
   const mana = h("div", { class: "mana-bar", aria: { hidden: "true" } });
   foeP.el.append(foeHand, foeDeck);
-  meP.el.append(myDeck, mana);
+  const prompt = h("p", { class: "aim-prompt", aria: { hidden: "true" } });
+  meP.el.append(myDeck, mana, prompt);
 
   // ------------------------------------------------------------------ battle menu
   let menu = null;
@@ -137,8 +138,9 @@ export function matchScreen(app) {
         h("div", { class: "panel-head" }, icon("swords"), h("h2", { text: "Battle menu" }), h("button", { class: "icon-btn sm close", type: "button", aria: { label: "Resume" }, on: { click: close } }, icon("close"))),
         h("div", { class: "panel-body pause-body" },
           h("button", { class: "btn primary block", type: "button", on: { click: close } }, icon("play"), "Resume"),
-          ...rows,
           app.sound ? soundButton(app, { block: true }) : null,
+          h("hr", { class: "pause-gap" }),
+          ...rows,
           h("p", { class: "hint", text: `${ctx.label ?? "Match"} · ${game.title}` }))));
     el.append(menu);
   }
@@ -297,14 +299,14 @@ export function matchScreen(app) {
     P.life.classList.toggle("low", p.life <= Math.max(5, Math.round(p.maxLife * 0.25)));
     P.name.replaceChildren(...(champ ? [h("span", { class: "pl-who", text: `${label} · ` }), champ.name] : [label]));
     P.sub.replaceChildren(...[
-      h("span", { class: "chip-mini", title: `${p.deck.length} cards left in the deck` }, h("i", { class: "cardback" }), h("b", { class: "tabnum", text: p.deck.length })),
-      h("span", { class: "chip-mini", title: `${p.hand.length} cards in hand` }, icon("cards"), h("b", { class: "tabnum", text: p.hand.length })),
+      h("span", { class: "chip-mini c-deck", title: `${p.deck.length} cards left in the deck` }, h("i", { class: "cardback" }), h("b", { class: "tabnum", text: p.deck.length })),
+      h("span", { class: "chip-mini c-hand", title: `${p.hand.length} cards in hand` }, icon("cards"), h("b", { class: "tabnum", text: p.hand.length })),
       p.spellPower ? h("span", { class: "chip-mini buff", title: `Spell power +${p.spellPower}` }, icon("spark"), h("b", { text: `+${p.spellPower}` })) : null,
       p.unitAttack ? h("span", { class: "chip-mini buff", title: `Unit attack +${p.unitAttack}` }, icon("sword"), h("b", { text: `+${p.unitAttack}` })) : null].filter(Boolean));
     const n = Math.max(p.energyCap, p.energy);
     // energy past the cap is a bonus for this turn: gold pips, and the count alone rather than a "2/1"
     const bonus = Math.max(0, p.energy - p.energyCap);
-    P.energy.replaceChildren(...Array.from({ length: n }, (_, i) => h("i", { class: i >= p.energyCap ? "full bonus" : i < p.energy ? "full" : "" })), h("span", { class: "tabnum", text: bonus ? `${p.energy}` : `${p.energy}/${p.energyCap}` }));
+    P.energy.replaceChildren(...Array.from({ length: n }, (_, i) => h("i", { class: i >= p.energyCap ? "full bonus" : i < p.energy ? "full" : "" })), h("span", { class: "tabnum", text: `${Math.min(p.energy, p.energyCap)}/${p.energyCap}` }), bonus ? h("span", { class: "tabnum bonus", text: `+${bonus}` }) : "");
     P.energy.title = bonus ? `energy ${p.energy} (${bonus} bonus this turn)` : `energy ${p.energy}/${p.energyCap}`;
     // the hero power
     const pw = p.power >= 0 ? game.champion.powers?.[p.power] : null;
@@ -362,7 +364,7 @@ export function matchScreen(app) {
       pile.classList.toggle("empty", p.deck.length === 0);
     }
     const cap = Math.max(me.energyCap, me.energy);
-    mana.replaceChildren(h("b", { class: "tabnum", text: me.energy > me.energyCap ? `${me.energy}` : `${me.energy}/${me.energyCap}` }),   // bonus energy: the count alone, as on the plate
+    mana.replaceChildren(h("b", { class: "tabnum" }, `${Math.min(me.energy, me.energyCap)}/${me.energyCap}`, me.energy > me.energyCap ? h("span", { class: "bonus", text: ` +${me.energy - me.energyCap}` }) : ""),
       h("span", { class: "mana-gems" }, ...Array.from({ length: cap }, (_, i) => h("i", { class: i >= me.energyCap ? "full bonus" : i < me.energy ? "full" : "" }))));
     // A replay can jump anywhere: compare with the state just before the cursor, and narrate the last moves.
     const before = replaying() ? session.states[session.cursor - 1] ?? null : prev;
@@ -447,6 +449,7 @@ export function matchScreen(app) {
     medallion.classList.toggle("yours", myTurn);
     medallion.dataset.side = s.turn === meIdx ? "0" : "1";
     const hint = !myTurn ? "" : pick?.kind === "hand" ? `Choose a target for ${cardName(me.hand[pick.index])}` : pick?.kind === "power" ? "Choose a target for your hero power" : pick?.kind === "unit" ? "Choose what to attack" : "";
+    prompt.textContent = hint;
     status.textContent = hint || recent.join(" · ") || (replaying() ? "" : session.status && !/^practice|^live$|^watching|^puzzle$/.test(session.status) ? session.status : "");
 
     // Turn banners, live only.
