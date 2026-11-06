@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 4
+VERSION = 5
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -433,17 +433,11 @@ def underworld():
             h = random.uniform(0.7, 2.2)
             shard(f"Crystal_{c}_{k}", h, h * 0.18, CRYSTAL, (cx + random.uniform(-0.6, 0.6), cy + random.uniform(-0.6, 0.6), 0.0),
                   (math.radians(random.uniform(-25, 25)), math.radians(random.uniform(-25, 25)), random.uniform(0, math.tau)), root)
-    # a cracked dome of ribs overhead, with stalactites hanging from it
+    # a cracked dome of ribs overhead
     for i in range(12):
         a = i * math.tau / 12
         sculpt(box(f"Rib_{i}", (14.0, 0.5, 0.8), (11.0 * math.cos(a), 11.0 * math.sin(a), 13.5), BASALT, rot=(0, math.radians(-22), a), parent=root), 0.3, 0.9, levels=2, kind="VORONOI", keep=0.5)
-    for i in range(22):
-        a = random.uniform(0, math.tau)
-        r = random.uniform(7.0, 15.0)
-        h = random.uniform(1.5, 4.0)
-        z = 13.5 + (r - 11.0) * math.tan(math.radians(22)) - 0.3
-        st = spin(f"Stalactite_{i}", [(0, 0), (0.35, 0), (0.25, -h * 0.4), (0.1, -h * 0.85), (0, -h)], BASALT, segments=7, loc=(r * math.cos(a), r * math.sin(a), z), rot=a, parent=root)
-        sculpt(st, 0.12, 0.4, levels=1, kind="VORONOI")
+    # (no stalactites: from the low title camera they hung from open sky)
     export("underworld")
     render("underworld", (3, -17, 15), (math.radians(50), 0, math.radians(10)), (0.04, 0.01, 0.01))
 
