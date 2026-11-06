@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 5
+VERSION = 6
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -332,8 +332,9 @@ def valhalla():
             box(f"BannerHem_{i}", (0.07, 1.1, 0.12), (bx - 0.01 * math.cos(a), by - 0.01 * math.sin(a), 3.15), GOLD, rot=(0, 0, a), parent=root)
             box(f"BannerSigil_{i}", (0.07, 0.42, 0.42), (bx - 0.02 * math.cos(a), by - 0.02 * math.sin(a), 4.9), RUNE, rot=(math.pi / 4, 0, a), parent=root)
     # arches between pillars: a lintel ring high up, and a second ring of taller pillars further out
-    ring_floor("Lintel", 16.0, 14.4, 7.9, 0.5, BLOCKS, root, bev=0.03, sides=16, rot=math.pi / 16)
-    ring_floor("LintelGold", 15.3, 15.1, 7.95, 0.08, GOLD, root, sides=16, rot=math.pi / 16)
+    # 48 sides: at 16 the ring read as a faceted plank from the low title camera
+    ring_floor("Lintel", 16.0, 14.4, 7.9, 0.5, BLOCKS, root, bev=0.03, sides=48, rot=math.pi / 16)
+    ring_floor("LintelGold", 15.3, 15.1, 7.95, 0.08, GOLD, root, sides=48, rot=math.pi / 16)
     for i in range(8):
         a = i * math.tau / 8
         x, y = 24.0 * math.cos(a), 24.0 * math.sin(a)
@@ -342,8 +343,9 @@ def valhalla():
     # braziers at the four board corners: a bowl on a tripod with an emissive fire core
     for (sx, sy) in [(-1, -1), (1, -1), (1, 1), (-1, 1)]:
         x, y = sx * 6.6, sy * 6.6
-        spin("Brazier", [(0, 0), (0.45, 0), (0.45, 0.08), (0.12, 0.12), (0.12, 1.1), (0.55, 1.25), (0.62, 1.55), (0.5, 1.6), (0.45, 1.35), (0, 1.3)], DARK, segments=16, loc=(x, y, 0), parent=root, bev=0.01)
-        spin("BrazierFire", [(0, 1.3), (0.4, 1.32), (0.3, 1.7), (0.12, 2.0), (0, 2.05)], FIRE, segments=10, loc=(x, y, 0), parent=root)
+        # on the floor (its top is at -0.17): at 0 they floated above it
+        spin("Brazier", [(0, 0), (0.45, 0), (0.45, 0.08), (0.12, 0.12), (0.12, 1.1), (0.55, 1.25), (0.62, 1.55), (0.5, 1.6), (0.45, 1.35), (0, 1.3)], DARK, segments=16, loc=(x, y, -0.17), parent=root, bev=0.01)
+        spin("BrazierFire", [(0, 1.3), (0.4, 1.32), (0.3, 1.7), (0.12, 2.0), (0, 2.05)], FIRE, segments=10, loc=(x, y, -0.17), parent=root)
     # great hall roof beams: radial dark beams that read as a vaulted ceiling against the sky
     for i in range(16):
         a = i * math.tau / 16 + math.pi / 16
@@ -355,8 +357,16 @@ def valhalla():
         sculpt(box(f"Block_{i}", (random.uniform(0.6, 1.4), random.uniform(0.6, 1.0), random.uniform(0.4, 0.9)), (r * math.cos(a), r * math.sin(a), 0.5), BLOCKS, rot=(0, 0, a), parent=root), 0.12, 0.4, levels=3, kind="VORONOI", keep=0.4)
     for i in range(6):
         a = i * math.tau / 6 + 0.3
-        sculpt(box(f"Runestone_{i}", (0.9, 0.3, 2.6), (12.5 * math.cos(a), 12.5 * math.sin(a), 1.5), STONE, rot=(0, 0, a), parent=root), 0.06, 0.3, levels=3, kind="CLOUDS", keep=0.45)
-        box(f"RunestoneGlyph_{i}", (0.5, 0.05, 1.6), (12.35 * math.cos(a) + 0.16 * math.sin(a), 12.35 * math.sin(a) - 0.16 * math.cos(a), 1.6), RUNE, rot=(0, 0, a), parent=root)
+        # broad face to the hall (side-on, a stone read as a thin grey box with a glowing edge), a rune carved in it:
+        # a stem and two branches, glowing, just proud of the face
+        face = a + math.pi / 2
+        sculpt(box(f"Runestone_{i}", (0.9, 0.3, 2.6), (12.5 * math.cos(a), 12.5 * math.sin(a), 1.13), STONE, rot=(0, 0, face), parent=root), 0.06, 0.3, levels=3, kind="CLOUDS", keep=0.45)
+        gx, gy = 12.33 * math.cos(a), 12.33 * math.sin(a)
+        box(f"RuneStem_{i}", (0.07, 0.03, 1.3), (gx, gy, 1.55), RUNE, rot=(0, 0, face), parent=root)
+        for k, (dz, tilt) in enumerate(((0.35, 0.75), (0.0, 0.75))):
+            ox = 0.14 * math.cos(face)
+            oy = 0.14 * math.sin(face)
+            box(f"RuneBranch_{i}_{k}", (0.36, 0.03, 0.06), (gx + ox, gy + oy, 1.55 + dz), RUNE, rot=(0, -tilt, face), parent=root)
     export("valhalla")
     render("valhalla", (3, -17, 15), (math.radians(50), 0, math.radians(10)), (0.06, 0.07, 0.1))
 
