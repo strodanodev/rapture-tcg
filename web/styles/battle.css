@@ -462,3 +462,14 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
 /* the battle menu button sits in the corner, not on the End turn gear's teeth */
 @media (min-width: 761px) { .dock > .icon-btn { position: fixed; top: calc(var(--safe-t) + 14px); right: calc(var(--safe-r) + 18px); } }
 .pause-gap { width: 100%; height: 1px; margin: 6px 0; border: 0; background: var(--line); }
+/* whose unit is whose, at a glance: each stands in a pool of its side's colour (gold rims are rarity, not side) */
+.foe-lane .unit::before { background: radial-gradient(ellipse, rgba(255, 80, 56, 0.55), rgba(0, 0, 0, 0.35) 55%, transparent 72%); }
+.my-lane .unit::before { background: radial-gradient(ellipse, rgba(80, 160, 255, 0.55), rgba(0, 0, 0, 0.35) 55%, transparent 72%); }
+/* phones: names clear the stat gems in the hand, neighbouring units' gems don't collide, no rune glyphs over the units */
+@media (max-width: 760px) {
+  .hand .tcard .tc-frame { padding-bottom: 2.3em; }
+  .lane { gap: 10px; }
+  .u-atk { left: 0; }
+  .u-hp { right: 0; }
+  .tm-glyphs { display: none; }
+}
