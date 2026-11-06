@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Rapture TCG",
+  "short_name": "Rapture TCG",
+  "description": "A trading card game of the Rapture ARC 1 champions: on-chain ERC-6699 stats make the champions, every match replays, and LitNode settles it.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#050409",
+  "theme_color": "#050409",
+  "lang": "en",
+  "categories": ["games"],
+  "icons": [
+    { "src": "/assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/brand/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

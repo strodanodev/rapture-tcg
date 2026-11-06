@@ -4,6 +4,7 @@ import { h, icon, stagger } from "../dom.js";
 import { go } from "../router.js";
 import { realmFor } from "../arena.js";
 import { shopLink, soundButton, walletChip } from "../widgets.js";
+import { install, installOffer, onInstallChange } from "../pwa.js";
 
 export function homeScreen(app) {
   // a menu entry: a button, or with no onClick a link to the game's shop (its own site, in a new tab)
@@ -14,6 +15,12 @@ export function homeScreen(app) {
     return { b, refresh: () => { s.textContent = sub(); } };
   };
   const sum = () => app.summary();
+  // beside the sound and wallet, only while the browser offers an install (on iOS, where it explains Add to Home
+  // Screen); see ui/pwa.js. The menu has no room for another row on a laptop screen.
+  const installBtn = h("button", { class: "icon-btn", type: "button", title: "Install app", aria: { label: "Install app" }, data: { install: "" }, on: { click: () => void install() } }, icon("install"));
+  const showInstall = () => { installBtn.hidden = !installOffer(); };
+  showInstall();
+  onInstallChange(showInstall);
   const items = app.relay
     ? []
     : [
@@ -67,7 +74,7 @@ export function homeScreen(app) {
 
   const el = h("section", { class: "home", aria: { label: "Main menu" } },
     h("div", { class: "home-scrim" }),
-    h("header", { class: "home-top" }, h("span", { class: "badge outline live", text: app.relay ? (app.watch ? "Spectating" : "Two-player match") : `Season 0 · ${app.snap.collection.name || "Practice"}` }), h("div", { class: "home-top-right" }, soundButton(app), walletChip(app))),
+    h("header", { class: "home-top" }, h("span", { class: "badge outline live", text: app.relay ? (app.watch ? "Spectating" : "Two-player match") : `Season 0 · ${app.snap.collection.name || "Practice"}` }), h("div", { class: "home-top-right" }, installBtn, soundButton(app), walletChip(app))),
     h("div", { class: "home-main" }, logo, menu),
     feature,
     h("footer", { class: "home-foot" }, app.funnel ? h("span", { text: "Built with Tessaract · settled on LitNode" }) : h("span", null, "Made with ", h("a", { href: "https://github.com/strodanodev/tessaract", rel: "noopener", text: "Tessaract" }))));

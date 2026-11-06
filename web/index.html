@@ -7,6 +7,13 @@
 <meta name="description" content="A trading card game made with Tessaract: on-chain ERC-6699 stats make the champions, every match replays, and LitNode settles it." />
 <meta name="theme-color" content="#050409" />
 <meta name="color-scheme" content="dark" />
+<!-- Installable: manifest.webmanifest, sw.js and ui/pwa.js (full screen on the first tap, "Install app" in the menu). -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Rapture TCG" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./assets/brand/apple-touch-icon.png" />
 <!-- Packs are bought and opened at the Forge, not in the game: the menu's Shop links there. -->
 <meta name="tessaract-shop" content="https://forge.litvm.games/" data-label="the Forge" />
 <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
@@ -29,6 +36,7 @@
 <link rel="modulepreload" href="./ui/sigil.js" />
 <link rel="modulepreload" href="./ui/runes.js" />
 <link rel="modulepreload" href="./ui/aim.js" />
+<link rel="modulepreload" href="./ui/pwa.js" />
 <link rel="modulepreload" href="./ui/dom.js" />
 <link rel="modulepreload" href="./ui/icons.js" />
 <link rel="modulepreload" href="./ui/result.js" />
