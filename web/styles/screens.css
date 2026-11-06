@@ -68,6 +68,7 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86
 .menu-item::before { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 2px; background: var(--gold-2); box-shadow: 0 0 12px var(--gold-2); transform: scaleY(0); transition: transform 0.25s var(--ease-out); }
 .menu-item:hover, .menu-item:focus-visible { transform: translateX(6px); border-color: var(--line); background: linear-gradient(90deg, rgba(255, 201, 94, 0.14), rgba(20, 16, 26, 0.3)); }
 .menu-item:hover::before, .menu-item:focus-visible::before { transform: scaleY(1); }
+a.menu-item:hover { text-decoration: none; }
 .mi-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--gold-1); border: 1px solid var(--line); background: rgba(0, 0, 0, 0.35); }
 .mi-ico svg { width: 19px; height: 19px; }
 .mi-text { display: grid; gap: 2px; }
@@ -158,6 +159,8 @@ body:has(#ui > .page:not([hidden])) #arena { filter: blur(2.5px) brightness(0.86
 .champ-grid .ccard .kind { font-size: 8px; padding: 2px 5px; }
 .champ-grid .ccard.chosen { box-shadow: 0 0 0 2px var(--gold-1), 0 0 30px rgba(255, 201, 94, 0.55), 0 14px 34px rgba(0, 0, 0, 0.55); }
 .champ-grid .empty { grid-column: 1 / -1; }
+.champ-grid .empty-shop { grid-column: 1 / -1; justify-self: start; }
+.champ-grid .empty-shop:hover { text-decoration: none; }
 .champ-detail { display: flex; flex-direction: column; align-self: start; max-height: 100%; overflow: hidden; }
 .cd-scroll { flex: 1 1 auto; min-height: 0; display: grid; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .cta-dock { flex: none; padding: 12px 20px 16px; border-top: 1px solid var(--line); background: rgba(14, 11, 19, 0.6); }

@@ -1,4 +1,4 @@
-// Small shared widgets: the wallet chip, a side crest, and a stat tile.
+// Small shared widgets: the wallet chip, the shop link, a side crest, and a stat tile.
 import { h, icon, toast } from "./dom.js";
 
 /** Connect button, or address and held count once connected. Keeps itself current. Hidden for a game without a collection. */
@@ -16,6 +16,12 @@ export function walletChip(app) {
   app.onWallet(render);
   render();
   return chip;
+}
+
+/** A link to the game's shop (index.html's tessaract-shop meta) in a new tab, or null when the game has none. */
+export function shopLink(app, cls, ...children) {
+  if (!app.shop) return null;
+  return h("a", { class: cls, href: app.shop.url, target: "_blank", rel: "noopener", on: { click: () => app.leftForShop() } }, ...children);
 }
 
 export function crest(side, cls = "") {
