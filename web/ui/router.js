@@ -22,8 +22,13 @@ export function register(s) {
 export const onScreen = (fn) => { listeners.push(fn); };
 export const currentScreen = () => current?.id ?? null;
 
+let wipeHook = null;
+/** Called as every wipe starts (the app plays its sound). */
+export const onWipe = (fn) => { wipeHook = fn; };
+
 /** Close the iris over everything, run `swap`, open it again. */
 export async function wipe(swap) {
+  wipeHook?.();
   iris.classList.remove("open");
   iris.classList.add("closing");
   await wait(420);
