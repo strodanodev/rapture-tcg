@@ -58,7 +58,12 @@ export function embers(count, colors) {
 
 let toastBox = null;
 /** A short notice at the top of the screen. */
+let toastHook = null;
+/** Told of every toast (the app sounds the errors). */
+export const onToast = (fn) => { toastHook = fn; };
+
 export function toast(text, kind = "info") {
+  toastHook?.(kind);
   if (!toastBox) { toastBox = h("div", { class: "toasts", aria: { live: "polite" } }); document.body.append(toastBox); }
   const t = h("div", { class: `toast${kind === "err" ? " err" : ""}` }, icon(kind === "err" ? "alert" : "spark"), h("span", { text }));
   toastBox.append(t);
