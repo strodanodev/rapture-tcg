@@ -1,5 +1,22 @@
-// Small shared widgets: the wallet chip, a side crest, and a stat tile.
+// Small shared widgets: the wallet chip, the sound button, a side crest, and a stat tile.
 import { h, icon, toast } from "./dom.js";
+
+const SOUND_NEXT = { on: "fx", fx: "off", off: "on" };
+const SOUND_LABEL = { on: "Sound on", fx: "Effects only", off: "Sound off" };
+const SOUND_ICON = { on: "sound", fx: "soundFx", off: "mute" };
+/** Cycles the sound: everything, effects only, off (S toggles too). `block` makes a labelled menu row. */
+export function soundButton(app, { block = false } = {}) {
+  const b = h("button", { class: block ? "btn ghost block" : "icon-btn sound-btn", type: "button", data: { sfx: "none" }, on: { click: () => app.setSoundMode(SOUND_NEXT[app.soundMode()]) } });
+  const render = () => {
+    const m = app.soundMode();
+    b.replaceChildren(icon(SOUND_ICON[m]), ...(block ? [SOUND_LABEL[m]] : []));
+    b.title = `${SOUND_LABEL[m]} · S`;
+    b.setAttribute("aria-label", `${SOUND_LABEL[m]}: change`);
+  };
+  const off = app.onSound(() => { if (b.isConnected) render(); else off(); });
+  render();
+  return b;
+}
 
 /** Connect button, or address and held count once connected. Keeps itself current. Hidden for a game without a collection. */
 export function walletChip(app) {

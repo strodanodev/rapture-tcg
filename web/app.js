@@ -14,9 +14,10 @@ import {
 } from "./engine/tessaract.js";
 import { createWallet } from "./lib/wallet.js";
 import { createHoldings } from "./lib/holdings.js";
+import { createSound } from "./lib/sound.js";
 import { shortAddress } from "./lib/util.js";
-import { toast, wait } from "./ui/dom.js";
-import { go, register, resetStack } from "./ui/router.js";
+import { onToast, toast, wait } from "./ui/dom.js";
+import { go, onWipe, register, resetStack } from "./ui/router.js";
 import { createArena, REALMS, realmFor } from "./ui/arena.js";
 import { createCards } from "./ui/cards.js";
 import { homeScreen } from "./ui/screens/home.js";
@@ -115,6 +116,36 @@ const app = {
   async toggleWallet() { if (wallet.snapshot().address) await wallet.disconnect(); else await wallet.connect(); await refreshOwned(); },
 };
 app.cards = createCards(app);
+
+// ------------------------------------------------------------------ sound: the realm's ambience, menu or battle music, the battle's effects
+// The library is audio/ (audio.json lists it). Three settings: everything, effects only, or silence (S toggles).
+const SOUND_MODES = { on: { muted: false, music: 0.6 }, fx: { muted: false, music: 0 }, off: { muted: true, music: 0.6 } };
+const soundListeners = new Set();
+const sound = createSound({ base: "./audio/", prefs: SOUND_MODES[prefs.sound] ?? SOUND_MODES.on });
+sound.bindUi(document);
+onWipe(() => sound.play("ui-wipe"));
+onToast((kind) => { if (kind === "err") sound.play("ui-error"); });
+const syncBeds = () => {
+  const realm = arena.realm === "underworld" ? "underworld" : "valhalla";
+  sound.ambience(realm === "underworld" ? "amb-abyss" : "amb-hall");
+  sound.music(arena.mood === "battle" ? `battle-${realm}` : "menu");
+};
+for (const k of ["setRealm", "setMood"]) { const f = arena[k]; arena[k] = (v) => { f.call(arena, v); syncBeds(); }; }
+syncBeds();
+app.sound = sound;
+app.soundMode = () => (SOUND_MODES[prefs.sound] ? prefs.sound : "on");
+app.setSoundMode = (mode) => {
+  app.setPref("sound", mode);
+  sound.set(SOUND_MODES[mode]);
+  if (mode !== "off") sound.play("ui-click");
+  for (const fn of soundListeners) fn(mode);
+};
+app.onSound = (fn) => { soundListeners.add(fn); return () => soundListeners.delete(fn); };
+document.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() !== "s" || e.ctrlKey || e.metaKey || e.altKey || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+  app.setSoundMode(app.soundMode() === "off" ? "on" : "off");
+  toast(app.soundMode() === "off" ? "Sound off (S)" : "Sound on (S)");
+});
 
 // ------------------------------------------------------------------ screens
 const home = homeScreen(app);

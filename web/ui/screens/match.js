@@ -7,11 +7,13 @@ import { h, icon, stagger, toast } from "../dom.js";
 import { createResult } from "../result.js";
 import { runeRing } from "../runes.js";
 import { createAim } from "../aim.js";
+import { soundButton } from "../widgets.js";
 
 export function matchScreen(app) {
   const { game, rules } = app;
   let session = null, ctx = {}, pick = null, prev = null, recent = [], announcedTurn = null, finishedOnce = false;
   let tally = null;   // this match's numbers for the result screen, counted as states arrive
+  let heartbeat = null;   // stops the low-life heartbeat
 
   // ------------------------------------------------------------------ layout
   const plate = (side) => {
@@ -128,6 +130,7 @@ export function matchScreen(app) {
         h("div", { class: "panel-body pause-body" },
           h("button", { class: "btn primary block", type: "button", on: { click: close } }, icon("play"), "Resume"),
           ...rows,
+          app.sound ? soundButton(app, { block: true }) : null,
           h("p", { class: "hint", text: `${ctx.label ?? "Match"} · ${game.title}` }))));
     el.append(menu);
   }
@@ -228,20 +231,49 @@ export function matchScreen(app) {
       else if (d > 0) floater(p, `+${d}`, "heal");
     }
     // Units that left the board: compare the multiset of cards on each side.
+    let died = 0;
     for (const idx of [meIdx, foeIdx]) {
       const after = new Map();
       for (const u of s.p[idx].board) after.set(u.c, (after.get(u.c) ?? 0) + 1);
       for (const u of before.p[idx].board) {
         const n = after.get(u.c) ?? 0;
         if (n > 0) after.set(u.c, n - 1);
-        else { if (live) fallen(game.cards[u.c], idx === foeIdx); if (tally && idx === foeIdx) tally.kills++; }
+        else { died++; if (live) fallen(game.cards[u.c], idx === foeIdx); if (tally && idx === foeIdx) tally.kills++; }
       }
     }
+    if (live) cues(before, s, meIdx, died);
     if (tally) {
       tally.dealt += Math.max(0, before.p[foeIdx].life - s.p[foeIdx].life);
       tally.taken += Math.max(0, before.p[meIdx].life - s.p[meIdx].life);
       if (s.last && decode(s.last).op === Op.Play && before.turn === meIdx) tally.played++;
     }
+  }
+
+  /** The battle's sounds, read from the same change: the action, the blow or the healing it caused, the fallen, cards drawn. */
+  function cues(before, s, meIdx, died) {
+    const snd = app.sound;
+    if (!snd) return;
+    const x = s.last ? decode(s.last) : null;
+    let land = 0;   // when the action's effect lands, after its own sound
+    if (x) {
+      const P = before.p[before.turn];
+      if (x.op === Op.Play) {
+        const type = game.cards[P.hand[x.a]]?.type;
+        snd.play("card-play");
+        snd.play(type === "unit" ? "summon" : type === "relic" ? "relic" : "spell", { delay: 0.1 });
+        land = 0.45;
+      } else if (x.op === Op.Power) { snd.play("power"); land = 0.75; }
+      else if (x.op === Op.Attack) { snd.play("strike"); land = 0.17; }
+      else if (x.op === Op.End) snd.play("end-turn");
+    }
+    let hurt = x?.op === Op.Attack, healed = false;
+    for (const p of [0, 1]) { const d = s.p[p].life - before.p[p].life; if (d < 0) hurt = true; else if (d > 0) healed = true; }
+    if (hurt) snd.play("hit", { delay: land });
+    if (healed) snd.play("heal", { delay: land });
+    if (died) snd.play("death", { delay: land + 0.12 });
+    // cards drawn into your hand (a card played from it doesn't count against the draw)
+    const drawn = s.p[meIdx].hand.length - before.p[meIdx].hand.length + (x?.op === Op.Play && before.turn === meIdx ? 1 : 0);
+    for (let k = 0; k < Math.min(3, drawn); k++) setTimeout(() => snd.play("card-draw"), 150 + k * 130);
   }
 
   // ------------------------------------------------------------------ the plates
@@ -338,7 +370,9 @@ export function matchScreen(app) {
     const low = (p) => !s.over && p.life <= Math.max(5, Math.round(p.maxLife * 0.25));
     foeP.el.classList.toggle("low", low(foe));
     meP.el.classList.toggle("low", low(me));
-    el.classList.toggle("danger", !watching && low(me));
+    const danger = !watching && !replaying() && low(me);
+    el.classList.toggle("danger", danger);
+    if (danger !== !!heartbeat) { heartbeat?.(); heartbeat = danger ? app.sound?.pulse("heartbeat", 1.3) ?? null : null; }   // your champion's heart, while life is low
 
     foeLane.replaceChildren(...framed(foe.board.map((u, slot) => {
       const b = inspectable(app.cards.unitToken(game.cards[u.c], u), game.cards[u.c]);
@@ -400,8 +434,8 @@ export function matchScreen(app) {
     // Turn banners, live only.
     if (!replaying() && !s.over && announcedTurn !== `${s.turnNo}`) {
       announcedTurn = `${s.turnNo}`;
-      if (myTurn) banner("Your turn", `Turn ${s.turnNo}`);
-      else if (!watching && ctx.kind === "relay") banner("Enemy turn", "", "foe");
+      if (myTurn) { banner("Your turn", `Turn ${s.turnNo}`); if (s.turnNo > 1) app.sound?.play("turn-yours", { delay: 0.2 }); }   // turn 1 has the war horn
+      else if (!watching && ctx.kind === "relay") { banner("Enemy turn", "", "foe"); app.sound?.play("turn-foe"); }
     }
     renderViewbar(s);
 
@@ -413,6 +447,8 @@ export function matchScreen(app) {
       const won = puzzleState ? puzzleState === "solved" : s.winner === meIdx;
       const outcomeKind = puzzleState ? (won ? "win" : "loss") : s.winner === 2 ? "draw" : watching ? "win" : won ? "win" : "loss";
       flash(outcomeKind === "win" ? "victory" : outcomeKind === "loss" ? "defeat" : "victory");
+      app.sound?.duck(0.2, 5, 3);
+      app.sound?.play(s.winner === 2 && !puzzleState ? "draw" : outcomeKind === "loss" ? "defeat" : "victory", { delay: 0.35 });
       banner(puzzleState ? (won ? "Solved" : "Not this time") : s.winner === 2 ? "Draw" : watching ? (playerName(s.p[s.winner].id) === "You" ? "You win" : `${playerName(s.p[s.winner].id)} wins`) : won ? "Victory" : "Defeat", "", outcomeKind === "loss" ? "red" : "");
       setTimeout(() => app.flows.finished({ session, state: s, meIdx, puzzleState, tally: { ...tally }, outcome: outcomeKind, watching, champion: myChamp }), 1400);
     } else if (s.over && !replaying() && ctx.kind === "relay" && !watching && result.open) {
@@ -450,9 +486,11 @@ export function matchScreen(app) {
       el.classList.toggle("viewing", viewing());
       session.onChange(render);
       placeControls();
+      heartbeat?.(); heartbeat = null;
+      if (!viewing()) { app.sound?.duck(0.45, 2, 2.5); app.sound?.play("match-start", { delay: 0.5 }); }
       render();
     },
-    detach() { session?.close?.(); session = null; menu?.remove(); menu = null; },
+    detach() { session?.close?.(); session = null; menu?.remove(); menu = null; heartbeat?.(); heartbeat = null; },
     get session() { return session; },
     result,
     render,

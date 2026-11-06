@@ -3,7 +3,7 @@
 import { h, icon, stagger } from "../dom.js";
 import { go } from "../router.js";
 import { realmFor } from "../arena.js";
-import { walletChip } from "../widgets.js";
+import { soundButton, walletChip } from "../widgets.js";
 
 export function homeScreen(app) {
   const item = (ico, title, sub, onClick) => {
@@ -65,7 +65,7 @@ export function homeScreen(app) {
 
   const el = h("section", { class: "home", aria: { label: "Main menu" } },
     h("div", { class: "home-scrim" }),
-    h("header", { class: "home-top" }, h("span", { class: "badge outline live", text: app.relay ? (app.watch ? "Spectating" : "Two-player match") : `Season 0 · ${app.snap.collection.name || "Practice"}` }), walletChip(app)),
+    h("header", { class: "home-top" }, h("span", { class: "badge outline live", text: app.relay ? (app.watch ? "Spectating" : "Two-player match") : `Season 0 · ${app.snap.collection.name || "Practice"}` }), h("div", { class: "home-top-right" }, soundButton(app), walletChip(app))),
     h("div", { class: "home-main" }, logo, menu),
     feature,
     h("footer", { class: "home-foot" }, app.funnel ? h("span", { text: "Built with Tessaract · settled on LitNode" }) : h("span", null, "Made with ", h("a", { href: "https://github.com/strodanodev/tessaract", rel: "noopener", text: "Tessaract" }))));
