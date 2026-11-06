@@ -3,13 +3,14 @@
 import { h, icon, stagger } from "../dom.js";
 import { go } from "../router.js";
 import { realmFor } from "../arena.js";
-import { soundButton, walletChip } from "../widgets.js";
+import { shopLink, soundButton, walletChip } from "../widgets.js";
 
 export function homeScreen(app) {
+  // a menu entry: a button, or with no onClick a link to the game's shop (its own site, in a new tab)
   const item = (ico, title, sub, onClick) => {
     const s = h("span", { class: "s" });
-    const b = h("button", { class: "menu-item", type: "button", on: { click: onClick } },
-      h("span", { class: "mi-ico" }, icon(ico)), h("span", { class: "mi-text" }, h("span", { class: "t", text: title }), s), h("span", { class: "mi-arrow" }, icon("next")));
+    const parts = [h("span", { class: "mi-ico" }, icon(ico)), h("span", { class: "mi-text" }, h("span", { class: "t", text: title }), s), h("span", { class: "mi-arrow" }, icon(onClick ? "next" : "external"))];
+    const b = onClick ? h("button", { class: "menu-item", type: "button", on: { click: onClick } }, ...parts) : shopLink(app, "menu-item", ...parts);
     return { b, refresh: () => { s.textContent = sub(); } };
   };
   const sum = () => app.summary();
@@ -19,6 +20,7 @@ export function homeScreen(app) {
       item("gauntlet", "Gauntlet", () => { const r = app.profile().gauntlet; return r.current && !r.current.over ? `Run in progress · stage ${Math.min(r.current.wins + 1, 8)} of 8` : `Eight foes, one life · best ${r.bestStage}/8`; }, () => void go("gauntlet")),
       item("puzzle", "Daily puzzle", () => (app.puzzleSolvedToday() ? "Solved today · come back tomorrow" : `Win in one turn · streak ${sum().puzzleStreak}`), () => void go("puzzle")),
       item("user", "Profile", () => { const s = sum(); return s.played ? `${s.wins}W ${s.losses}L · ${s.played} ${s.played === 1 ? "match" : "matches"}` : "Your matches and replays"; }, () => void go("profile")),
+      ...(app.shop ? [item("gem", "Shop", () => `Open packs at ${app.shop.label}`, null)] : []),
       ...(app.funnel ? [item("hammer", "Build your own", () => "Make a TCG from any NFT collection", () => void go("forge"))] : []),
     ];
   const play = h("button", { class: "btn primary lg pulse play-btn", type: "button", on: { click: () => void app.flows.choose("practice") } }, icon("play"), app.relay ? "Join the match" : "Play");

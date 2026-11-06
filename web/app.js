@@ -87,6 +87,18 @@ async function refreshOwned() {
 }
 wallet.subscribe(() => { void refreshOwned(); });
 
+// Where the game's cards are sold, if anywhere: <meta name="tessaract-shop" content="https://…" data-label="…"> in
+// index.html. The shop is its own site and opens in a new tab; the wallet is read again when the player comes back.
+const shop = (() => {
+  const m = document.querySelector('meta[name="tessaract-shop"]');
+  try {
+    const url = new URL(m?.content ?? "");
+    return url.protocol === "https:" ? { url: url.href, label: m.dataset.label?.trim() || url.hostname } : null;
+  } catch { return null; }
+})();
+let shopVisit = false;
+document.addEventListener("visibilitychange", () => { if (!document.hidden && shopVisit) { shopVisit = false; void refreshOwned(); } });
+
 // ------------------------------------------------------------------ the app: what every screen reads
 const arena = createArena(document.getElementById("arena"));
 const app = {
@@ -94,6 +106,7 @@ const app = {
   relay: !!RELAY, watch: WATCH, requireOwned: !!RELAY && q.get("owned") === "1",
   funnel: !!document.querySelector('meta[name="tessaract-funnel"]'),
   hasWallet: !!holdings,
+  shop, leftForShop: () => { shopVisit = true; },
   elementColor, artOf, nameOf, statsOf,
   champName: (tokenId) => (tokenId ? byToken.get(String(tokenId))?.name ?? `#${tokenId}` : "Base champion"),
   heroPowerOf(c) {

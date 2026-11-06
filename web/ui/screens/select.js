@@ -3,7 +3,7 @@
 import { h, icon, stagger } from "../dom.js";
 import { pageHead } from "../router.js";
 import { REALMS, realmFor } from "../arena.js";
-import { walletChip } from "../widgets.js";
+import { shopLink, walletChip } from "../widgets.js";
 
 const LEVELS = [[1, "Easy"], [2, "Normal"], [3, "Hard"]];
 const MODE_COPY = {
@@ -73,7 +73,10 @@ export function selectScreen(app) {
       b.addEventListener("click", () => { chosen = c; for (const x of grid.children) x.classList.toggle("chosen", x === b); renderDetail(); });
       return b;
     }));
-    if (!list.length) grid.append(h("p", { class: "lede empty", text: app.snap.cards.length ? `No ${app.snap.collection.name} cards in this wallet yet. Pick any champion under All.` : "This game has no NFT collection yet, so both sides fight with the base champion." }));
+    if (!list.length) {
+      grid.append(h("p", { class: "lede empty", text: app.snap.cards.length ? `No ${app.snap.collection.name} cards in this wallet yet. Pick any champion under All.` : "This game has no NFT collection yet, so both sides fight with the base champion." }));
+      if (app.shop && app.snap.cards.length) grid.append(shopLink(app, "btn empty-shop", icon("gem"), `Get packs at ${app.shop.label}`, icon("external")));
+    }
     stagger(grid);
   }
 
