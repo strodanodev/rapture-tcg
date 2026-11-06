@@ -1,8 +1,10 @@
 # Build the 3D arena's statues (web/assets/arena/statues/*.glb) from Rapture Chess's champion avatars, in Blender:
 #   blender -b --factory-startup -P scripts/make-statues.py -- ../rapture-chess/public/models/avatars \
-#     web/assets/arena/statues 0.12 vaelmyra halvorne tharnyx korvazh nyxarion golvexis pyravane serrivane
+#     web/assets/arena/statues 0.3 vaelmyra halvorne tharnyx korvazh nyxarion golvexis pyravane serrivane
 # Each avatar's pose is baked (armature applied, rig dropped), its meshes are decimated to the ratio, and it exports as a
 # plain GLB (no Draco), so the arena worker reads it with no decoder. web/assets/arena/statues.json places them.
+# 0.3 keeps each bust whole (at 0.12 they read as broken shards); ship them as <name>.<n>.glb and list those names in
+# statues.json, since the deploy caches assets for a year.
 import os
 import sys
 import bpy
