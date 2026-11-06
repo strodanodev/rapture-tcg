@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 6
+VERSION = 7
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -323,14 +323,15 @@ def valhalla():
         prof = [(0, 0), (0.75, 0), (0.75, 0.25), (0.55, 0.3), (0.55, 6.6), (0.7, 6.8), (0.7, 7.1), (0.85, 7.2), (0.85, 7.5), (0, 7.5)]
         spin(f"Pillar_{i}", prof, STONE, segments=12, loc=(x, y, 0.2), rot=a, parent=root, bev=0.02)
         spin(f"PillarCap_{i}", [(0.5, 6.55), (0.72, 6.55), (0.72, 6.65), (0.5, 6.65)], GOLD, segments=12, loc=(x, y, 0.2), parent=root)
-        spin(f"PillarRune_{i}", [(0.56, 3.0), (0.58, 3.0), (0.58, 3.25), (0.56, 3.25)], RUNE, segments=12, loc=(x, y, 0.2), parent=root)
+        # a gold band, not a glowing one: lit pale blue, the bands read as unlit plastic tape
+        spin(f"PillarRune_{i}", [(0.56, 3.0), (0.58, 3.0), (0.58, 3.25), (0.56, 3.25)], GOLD, segments=12, loc=(x, y, 0.2), parent=root)
         if i % 2 == 0:
             # a war banner on every other pillar, facing the board, with a gold rod and hem
             bx, by = 14.45 * math.cos(a), 14.45 * math.sin(a)
             box(f"Banner_{i}", (0.06, 1.1, 3.0), (bx, by, 4.6), BANNER, rot=(0, 0, a), parent=root)
             box(f"BannerRod_{i}", (0.08, 1.4, 0.08), (bx, by, 6.15), GOLD, rot=(0, 0, a), parent=root)
             box(f"BannerHem_{i}", (0.07, 1.1, 0.12), (bx - 0.01 * math.cos(a), by - 0.01 * math.sin(a), 3.15), GOLD, rot=(0, 0, a), parent=root)
-            box(f"BannerSigil_{i}", (0.07, 0.42, 0.42), (bx - 0.02 * math.cos(a), by - 0.02 * math.sin(a), 4.9), RUNE, rot=(math.pi / 4, 0, a), parent=root)
+            box(f"BannerSigil_{i}", (0.07, 0.42, 0.42), (bx - 0.02 * math.cos(a), by - 0.02 * math.sin(a), 4.9), GOLD, rot=(math.pi / 4, 0, a), parent=root)   # embroidered gold
     # arches between pillars: a lintel ring high up, and a second ring of taller pillars further out
     # 48 sides: at 16 the ring read as a faceted plank from the low title camera
     ring_floor("Lintel", 16.0, 14.4, 7.9, 0.5, BLOCKS, root, bev=0.03, sides=48, rot=math.pi / 16)
@@ -346,10 +347,7 @@ def valhalla():
         # on the floor (its top is at -0.17): at 0 they floated above it
         spin("Brazier", [(0, 0), (0.45, 0), (0.45, 0.08), (0.12, 0.12), (0.12, 1.1), (0.55, 1.25), (0.62, 1.55), (0.5, 1.6), (0.45, 1.35), (0, 1.3)], DARK, segments=16, loc=(x, y, -0.17), parent=root, bev=0.01)
         spin("BrazierFire", [(0, 1.3), (0.4, 1.32), (0.3, 1.7), (0.12, 2.0), (0, 2.05)], FIRE, segments=10, loc=(x, y, -0.17), parent=root)
-    # great hall roof beams: radial dark beams that read as a vaulted ceiling against the sky
-    for i in range(16):
-        a = i * math.tau / 16 + math.pi / 16
-        box(f"Beam_{i}", (12.0, 0.35, 0.45), (13.0 * math.cos(a), 13.0 * math.sin(a), 15.0), BLOCKS, rot=(0, math.radians(-18), a), parent=root, bev=0.02)
+    # (no roof beams: with nothing above them they floated, and spoked behind the logo on phones)
     # fallen blocks and standing runestones around the floor for scale
     for i in range(10):
         a = random.uniform(0, math.tau)
