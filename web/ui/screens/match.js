@@ -105,6 +105,14 @@ export function matchScreen(app) {
   const el = h("section", { class: "match", aria: { label: "Battle" } },
     fx, foeP.el, h("div", { class: "hud-center" }, medallion, status), board, meP.el, pickInfo, hand, dock, feed, cine, viewbar, result.el);
   const aim = createAim(el);   // the targeting arrow from whatever is picked (see ui/aim.js)
+  // the table round the board (wider screens): the foe's hand as a fan of card backs, each deck as a pile with its
+  // count, and your energy as a row of crystals beside your plate, where a card game's player looks for them
+  const foeHand = h("div", { class: "foe-hand", aria: { hidden: "true" } });
+  const deckPile = () => h("div", { class: "deck-pile", aria: { hidden: "true" } }, h("i"), h("i"), h("i"), h("b", { class: "tabnum" }));
+  const foeDeck = deckPile(), myDeck = deckPile();
+  const mana = h("div", { class: "mana-bar", aria: { hidden: "true" } });
+  foeP.el.append(foeHand, foeDeck);
+  meP.el.append(myDeck, mana);
 
   // ------------------------------------------------------------------ battle menu
   let menu = null;
@@ -346,6 +354,16 @@ export function matchScreen(app) {
       return;
     }
     const me = s.p[meIdx], foe = s.p[meIdx === 0 ? 1 : 0];
+    const backs = Math.min(foe.hand.length, 10);
+    foeHand.replaceChildren(...Array.from({ length: backs }, (_, i) => h("i", { style: `--i:${i - (backs - 1) / 2}` })));
+    for (const [pile, p] of [[foeDeck, foe], [myDeck, me]]) {
+      pile.lastElementChild.textContent = String(p.deck.length);
+      pile.classList.toggle("low", p.deck.length > 0 && p.deck.length <= 5);
+      pile.classList.toggle("empty", p.deck.length === 0);
+    }
+    const cap = Math.max(me.energyCap, me.energy);
+    mana.replaceChildren(h("b", { class: "tabnum", text: me.energy > me.energyCap ? `${me.energy}` : `${me.energy}/${me.energyCap}` }),   // bonus energy: the count alone, as on the plate
+      h("span", { class: "mana-gems" }, ...Array.from({ length: cap }, (_, i) => h("i", { class: i >= me.energyCap ? "full bonus" : i < me.energy ? "full" : "" }))));
     // A replay can jump anywhere: compare with the state just before the cursor, and narrate the last moves.
     const before = replaying() ? session.states[session.cursor - 1] ?? null : prev;
     if (replaying()) {

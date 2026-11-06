@@ -125,6 +125,28 @@
 .tm-band { fill: none; stroke: rgba(5, 12, 16, 0.88); }
 .tm-glyphs { fill: none; stroke: #92f0ff; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #3cd4ff) drop-shadow(0 0 8px rgba(60, 212, 255, 0.55)); animation: runeGlow 4.5s ease-in-out infinite; }
 @keyframes runeGlow { 50% { opacity: 0.68; } }
+/* the table round the board (wider screens): the foe's hand as card backs, the decks as piles, your energy as crystals */
+.foe-hand, .deck-pile, .mana-bar { display: none; }
+@media (min-width: 900px) and (min-height: 600px) {
+  .foe-hand { display: block; position: absolute; left: calc(100% + 150px); top: 2px; width: 0; height: 0; pointer-events: none; }   /* hanging beside the foe's plate, in full view */
+  .foe-hand i { position: absolute; left: -24px; top: 0; width: 48px; height: 68px; border-radius: 5px; transform-origin: 50% -70%; transform: translateX(calc(var(--i) * 14px)) rotate(calc(var(--i) * -5deg));
+    background: radial-gradient(circle at 50% 50%, rgba(255, 201, 94, 0.5) 0 9%, transparent 10%), repeating-linear-gradient(45deg, rgba(255, 201, 94, 0.07) 0 3px, transparent 3px 9px), linear-gradient(160deg, #3b2650, #150c1e 70%);
+    box-shadow: inset 0 0 0 2px #0b0910, inset 0 0 0 3px var(--gold-3), 0 6px 14px rgba(0, 0, 0, 0.6); }
+  .deck-pile { display: grid; place-items: center; position: absolute; right: calc(100% + 18px); top: 50%; width: 48px; height: 66px; transform: translateY(-50%); }
+  .deck-pile i { position: absolute; inset: 0; border-radius: 4px; background: repeating-linear-gradient(45deg, rgba(255, 201, 94, 0.07) 0 3px, transparent 3px 9px), linear-gradient(160deg, #3b2650, #150c1e 70%); box-shadow: inset 0 0 0 2px #0b0910, inset 0 0 0 3px var(--gold-3), 0 3px 8px rgba(0, 0, 0, 0.6); }
+  .deck-pile i:nth-child(2) { transform: translate(-3px, -3px); }
+  .deck-pile i:nth-child(3) { transform: translate(-6px, -6px); }
+  .deck-pile b { position: relative; transform: translate(-6px, -6px); min-width: 30px; padding: 2px 6px; border-radius: 999px; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--gold-0); background: rgba(8, 6, 12, 0.88); box-shadow: 0 0 0 1px var(--gold-3); }
+  .deck-pile.low b { color: #ffb4a6; box-shadow: 0 0 0 1px var(--danger), 0 0 12px rgba(255, 75, 58, 0.5); }
+  .deck-pile.empty i { opacity: 0.25; }
+  .plate.top .deck-pile { right: auto; left: calc(100% + 22px); }   /* the foe's deck sits with the foe's hand, clear of the narration */
+  .mana-bar { display: grid; justify-items: start; gap: 4px; position: absolute; left: calc(100% + 18px); top: 50%; transform: translateY(-50%); padding: 8px 14px 9px; border-radius: 6px; background: linear-gradient(180deg, rgba(14, 22, 40, 0.92), rgba(6, 9, 18, 0.92)); box-shadow: inset 0 0 0 1px rgba(110, 175, 255, 0.35), 0 10px 26px rgba(0, 0, 0, 0.55); }
+  .mana-bar b { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: 0.04em; color: #d6f0ff; text-shadow: 0 0 14px rgba(80, 170, 255, 0.8); }
+  .mana-gems { display: flex; gap: 4px; }
+  .mana-gems i { width: 15px; height: 20px; clip-path: polygon(50% 0, 100% 35%, 50% 100%, 0 35%); background: rgba(120, 180, 255, 0.22); }
+  .mana-gems i.full { background: linear-gradient(180deg, #e6f6ff, #3a9cf0 55%, #164e9a); filter: drop-shadow(0 0 5px #4fb0ff); }
+  .mana-gems i.bonus { background: linear-gradient(180deg, #fff3cc, var(--gold-1, #e0a63a)); filter: drop-shadow(0 0 5px rgba(255, 201, 94, 0.9)); }
+}
 /* the targeting arrow (ui/aim.js): gold while it hunts, red on a foe, green on an ally */
 .aim { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; overflow: visible; opacity: 0; transition: opacity 0.15s; --aim: #ffd27a; }
 .aim.on { opacity: 1; }
@@ -399,4 +421,12 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
   .res-primary { width: 100%; }
   .res-primary .btn { min-width: 0; width: 100%; }
   .res-secondary { grid-template-columns: 1fr; gap: 8px; }
+}
+/* laptop heights: the champion keeps a framed portrait too, smaller than on tall screens */
+@media (min-width: 1100px) and (min-height: 700px) and (max-height: 899px) {
+  .pl-hero, .pl-face { width: 92px; height: 104px; }
+  .plate.top .pl-hero { margin: -4px 0 -38px; }
+  .plate.bottom .pl-hero { margin: -38px 0 -4px; }
+  .pl-face { border-radius: 50% 50% 14% 14% / 42% 42% 10% 10%; border-width: 3px; border-color: color-mix(in srgb, var(--el) 55%, var(--gold-1)); }
+  .pl-face img { object-position: 50% 14%; }
 }
