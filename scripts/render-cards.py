@@ -11,7 +11,7 @@ import bpy, bmesh, json, math, os, random, sys
 _args = sys.argv[sys.argv.index("--") + 1:]
 game_path, out_dir = _args[:2]
 ONLY = _args[_args.index("--only") + 1] if "--only" in _args else None
-VERSION = 2
+VERSION = 3
 W, H = 800, 584   # the card's art window is about 1.37:1
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 ELEMENT = {   # glow colour, dim colour for the backdrop
@@ -291,6 +291,45 @@ def helm(c, base, x=0.0, s=1.0):
     prim("cylinder", "Neck", bronze, loc=(x, 0, base + 0.55 * s), radius=0.35 * s, depth=0.3 * s)
 
 
+def construct(c, base, x=0.0, s=1.0):
+    """The Construct: a bronze automaton's bust, plated and riveted, a furnace core in its chest and slit eyes."""
+    bronze = metal("bronze", (0.75, 0.5, 0.28), 0.3)
+    iron = metal("iron", (0.16, 0.15, 0.15), 0.45)
+    core_m, eye_m = emis("core", c, 7), emis("eyes", c, 12)   # hotter blows out to a white disc
+
+    def part(kind, name, mat, loc, scale=(1, 1, 1), rot=(0, 0, 0), bev=0.0, smooth=False, **kw):
+        o = prim(kind, name, mat, loc=(x + loc[0] * s, loc[1] * s, base + loc[2] * s), rot=rot, scale=tuple(v * s for v in scale), **kw)
+        if bev:
+            bevel(o, bev * s, 3)
+        if smooth:
+            for f in o.data.polygons:
+                f.use_smooth = True
+        return o
+
+    # chest: a broad bevelled cuirass over an iron frame, a plated seam down the middle, the core behind a bronze ring
+    part("cube", "Frame", iron, (0, 0.06, 0.62), (0.5, 0.36, 0.42), bev=0.1)
+    part("cube", "Cuirass", bronze, (0, -0.02, 0.86), (0.6, 0.38, 0.36), bev=0.14)
+    part("cube", "Seam", iron, (0, -0.4, 0.86), (0.025, 0.02, 0.34))
+    part("uv_sphere", "Core", core_m, (0, -0.38, 0.86), (1, 0.55, 1), radius=0.15, smooth=True)
+    part("torus", "CoreRing", bronze, (0, -0.4, 0.86), rot=(math.radians(90), 0, 0), major_radius=0.2, minor_radius=0.045)
+    for k in range(6):
+        a = k * math.tau / 6
+        part("uv_sphere", f"Rivet{k}", bronze, (0.48 * math.cos(a) * 0.9, -0.39, 0.86 + 0.26 * math.sin(a)), radius=0.03, smooth=True)
+    # shoulders: domed pauldrons on ball joints, upper arms angled down and out
+    for side in (-1, 1):
+        part("uv_sphere", f"Joint{side}", iron, (side * 0.66, 0, 1.0), radius=0.17, smooth=True)
+        part("uv_sphere", f"Pauldron{side}", bronze, (side * 0.72, 0, 1.08), (1.05, 0.95, 0.75), radius=0.26, smooth=True)
+        part("cylinder", f"Arm{side}", iron, (side * 0.86, 0, 0.62), rot=(0, math.radians(side * 14), 0), radius=0.11, depth=0.62, vertices=12, smooth=True)
+    # head: an angular helm on an iron neck, a brow ridge, two glowing eye slits and a short crest
+    part("cylinder", "Neck", iron, (0, 0, 1.18), radius=0.12, depth=0.22, vertices=12, smooth=True)
+    part("cube", "Head", bronze, (0, 0, 1.46), (0.24, 0.24, 0.27), bev=0.07)
+    part("cube", "Brow", bronze, (0, -0.24, 1.55), (0.25, 0.04, 0.05), bev=0.02)
+    part("cube", "Jaw", iron, (0, -0.2, 1.28), (0.17, 0.06, 0.05), bev=0.02)
+    for side in (-1, 1):
+        part("cube", f"Eye{side}", eye_m, (side * 0.1, -0.245, 1.47), (0.07, 0.01, 0.022))
+    part("cube", "Crest", bronze, (0, 0.02, 1.8), (0.03, 0.2, 0.08), bev=0.02)
+
+
 def idol(c, base):
     body = prim("cylinder", "Idol", stone("idol", "rock_wall_08", (0.35, 0.3, 0.3), 2.0), loc=(0, 0, base + 0.75), vertices=6, radius=0.38, depth=1.5)
     bevel(body, 0.05)
@@ -300,11 +339,11 @@ def idol(c, base):
 
 
 def summon(c, base):
-    helm(c, base, x=-0.62, s=0.72)
-    helm(c, base, x=0.62, s=0.72)
+    construct(c, base, x=-0.68, s=0.7)
+    construct(c, base, x=0.68, s=0.7)
 
 
-EMBLEM = {"bolt": bolt, "quake": quake, "buff": buff, "energy": energy, "shield": shield, "draw": draw, "unit": helm, "idol": idol, "summon": summon}
+EMBLEM = {"bolt": bolt, "quake": quake, "buff": buff, "energy": energy, "shield": shield, "draw": draw, "unit": construct, "idol": idol, "summon": summon}
 
 
 def key_for(card):
