@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 3
+VERSION = 4
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -386,33 +386,32 @@ def underworld():
     for i in range(4):
         a = i * math.tau / 4 + math.pi / 4
         # carved basalt, not glossy obsidian: from the title camera a smooth slab read as a white plank
-        sculpt(box(f"Bridge_{i}", (3.4, 1.4, 0.3), (7.6 * math.cos(a), 7.6 * math.sin(a), -0.25), BASALT, rot=(0, 0, a), parent=root), 0.08, 0.5, levels=2, kind="CLOUDS", keep=0.6)
+        # a thick bevelled slab, broken by Voronoi like the basalt plates, with squat stone posts at its corners in
+        # place of thin rails (from the title camera, rails read as planks)
+        sculpt(box(f"Bridge_{i}", (3.4, 1.6, 0.42), (7.6 * math.cos(a), 7.6 * math.sin(a), -0.28), BASALT, rot=(0, 0, a), parent=root, bev=0.12), 0.14, 0.45, levels=2, kind="VORONOI", keep=0.6)
         for s in (-1, 1):
-            sculpt(box(f"BridgeRail_{i}{s}", (3.4, 0.16, 0.32), (7.6 * math.cos(a) - s * 0.7 * math.sin(a), 7.6 * math.sin(a) + s * 0.7 * math.cos(a), 0.0), BASALT, rot=(0, 0, a), parent=root), 0.07, 0.35, levels=2, kind="CLOUDS", keep=0.6)
-    # obsidian spires: tall jagged cones in a ring, leaning outward, with ember cracks (thin emissive bands)
+            for t in (-1, 1):
+                px = 7.6 * math.cos(a) + t * 1.45 * math.cos(a) - s * 0.72 * math.sin(a)
+                py = 7.6 * math.sin(a) + t * 1.45 * math.sin(a) + s * 0.72 * math.cos(a)
+                post = spin(f"BridgePost_{i}{s}{t}", [(0, 0), (0.24, 0), (0.2, 0.42), (0.26, 0.5), (0.14, 0.62), (0, 0.66)], BASALT, segments=8, loc=(px, py, -0.1), rot=a, parent=root)
+                sculpt(post, 0.05, 0.2, levels=1, kind="VORONOI")
+    # obsidian spires: tall jagged cones in a ring, leaning outward (their old ember bands read as tape, and are gone)
     for i in range(14):
         a = i * math.tau / 14 + random.uniform(-0.12, 0.12)
         r = random.uniform(16.0, 20.0)
         h = random.uniform(7.0, 15.0)
         x, y = r * math.cos(a), r * math.sin(a)
         prof = [(0, 0), (1.6, 0), (1.3, h * 0.25), (0.9, h * 0.5), (0.5, h * 0.78), (0.12, h), (0, h)]
-        o = spin(f"Spire_{i}", prof, OBSIDIAN, segments=9, loc=(x, y, -0.6), rot=a, parent=root)
-        # fractured volcanic glass: Voronoi facets, kept sharp-edged
-        sculpt(o, 0.55, 1.1, levels=2, kind="VORONOI", keep=0.7)
+        o = spin(f"Spire_{i}", prof, OBSIDIAN, segments=14, loc=(x, y, -0.6), rot=a, parent=root)
+        # fractured volcanic glass: finer, shallower Voronoi facets, kept sharp-edged (deep ones read as lumps)
+        sculpt(o, 0.32, 0.8, levels=2, kind="VORONOI", keep=0.7)
         o.rotation_euler = (math.radians(random.uniform(-8, 8)), math.radians(random.uniform(4, 14)), a)
-        # the ember crack: a band just inside the spire's surface at that height, carved by the same world-space noise
-        # in the same pose, so it follows the glass and glows only where it breaks through, as cracks
-        # two narrow cracks at varied heights, so they read as fissures, not a band of tape round every spire
-        for k, (f0, f1) in enumerate(((0.28, 0.31), (0.5, 0.52))):
-            f0 += random.uniform(-0.08, 0.08); f1 = f0 + (f1 - (0.28 if k == 0 else 0.5))
-            rad = lambda f: (1.6 + (1.3 - 1.6) * f / 0.25) if f < 0.25 else (1.3 + (0.9 - 1.3) * (f - 0.25) / 0.25) if f < 0.5 else (0.9 + (0.5 - 0.9) * (f - 0.5) / 0.28)
-            r0 = rad((f0 + f1) / 2) - 0.05
-            e = spin(f"SpireEmber_{i}_{k}", [(r0 - 0.05, h * f0), (r0, h * f0), (r0, h * f1), (r0 - 0.05, h * f1)], EMBER, segments=9, loc=(x, y, -0.6), rot=a, parent=root)
-            e.rotation_euler = o.rotation_euler
-            sculpt(e, 0.55, 1.1, levels=2, kind="VORONOI")
-    # lava falls: tall emissive slabs on two far spires
-    for i, a in enumerate((0.9, 3.9)):
-        box(f"LavaFall_{i}", (0.6, 0.12, 9.0), (20.5 * math.cos(a), 20.5 * math.sin(a), 4.0), LAVA, rot=(0, 0, a), parent=root)
+        # broken-off shards round its foot, leaning out, so each spire stands in its own rubble
+        for k in range(random.randint(2, 3)):
+            ba = a + random.uniform(-1.2, 1.2)
+            bh = random.uniform(1.2, 2.8)
+            shard(f"SpireShard_{i}_{k}", bh, bh * 0.3, OBSIDIAN, (x + 1.9 * math.cos(ba), y + 1.9 * math.sin(ba), -0.4),
+                  (math.radians(random.uniform(-30, 30)), math.radians(random.uniform(-30, 30)), ba), root)
     # bone totems and boulders near the board
     for i in range(8):
         a = i * math.tau / 8 + 0.2
