@@ -297,7 +297,7 @@ export function matchScreen(app) {
     P.portrait.setAttribute("aria-label", `${label}: ${p.life} life`);
     P.life.textContent = String(p.life);
     P.life.classList.toggle("low", p.life <= Math.max(5, Math.round(p.maxLife * 0.25)));
-    P.name.replaceChildren(...(champ ? [h("span", { class: "pl-who", text: `${label} · ` }), champ.name] : [label]));
+    P.name.replaceChildren(...(champ ? [champ.name, h("span", { class: "pl-who", text: label })] : [label]));
     P.sub.replaceChildren(...[
       h("span", { class: "chip-mini c-deck", title: `${p.deck.length} cards left in the deck` }, h("i", { class: "cardback" }), h("b", { class: "tabnum", text: p.deck.length })),
       h("span", { class: "chip-mini c-hand", title: `${p.hand.length} cards in hand` }, icon("cards"), h("b", { class: "tabnum", text: p.hand.length })),

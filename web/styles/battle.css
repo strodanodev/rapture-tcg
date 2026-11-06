@@ -473,3 +473,8 @@ body:has(#arena[data-realm='underworld']) .battlefield::before { background: rad
   .u-hp { right: 0; }
   .tm-glyphs { display: none; }
 }
+/* a hero power you can't afford reads as unavailable, not just faded */
+.power:disabled:not(.used) { opacity: 0.5; filter: grayscale(0.85); box-shadow: none; }
+.et-label { font-size: 15px; }
+/* the champion's name leads; who plays it is a small tag after it ("House bot", "You") */
+@media (min-width: 761px) { .pl-who { display: inline-block; margin-left: 10px; padding: 1px 7px; vertical-align: 2px; border-radius: 3px; border: 1px solid var(--line); font-family: var(--font-body, inherit); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--muted); } }

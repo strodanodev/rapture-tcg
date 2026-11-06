@@ -118,3 +118,8 @@ button.ccard:hover { box-shadow: 0 22px 46px rgba(0, 0, 0, 0.6), 0 0 30px color-
 .ccard.base { background: linear-gradient(160deg, var(--gold-1), var(--gold-4) 45%, var(--gold-2)); }
 .ccard.base .inner { background: radial-gradient(circle at 50% 45%, #2b1d36, #0b0810 70%); display: grid; place-items: center; color: var(--gold-2); }
 .ccard.base .inner svg { width: 56%; }
+/* the element lives in the frame, not only in the type line: the nameplate and the inner border take its colour */
+.tcard .tc-name::before { background: linear-gradient(180deg, color-mix(in srgb, var(--el) 40%, #3a2f46), color-mix(in srgb, var(--el) 14%, #1a1422) 55%, #0e0a13); }
+.tcard .tc-frame::after { border-color: color-mix(in srgb, var(--el) 50%, rgba(255, 214, 140, 0.25)); }
+/* keyword tabs large enough to read on a unit */
+.u-kw i { font-size: clamp(9px, calc(var(--u, 84px) * 0.12), 12px); padding: 2px 5px; }
