@@ -70,7 +70,7 @@ button.tcard:disabled { cursor: default; filter: saturate(0.4) brightness(0.6); 
 .u-atk, .u-hp { position: absolute; bottom: 0; z-index: 2; display: grid; place-items: center; width: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); height: clamp(24px, calc(var(--u, 84px) * 0.3), 38px); font-family: var(--font-display); font-weight: 700; font-size: clamp(12px, calc(var(--u, 84px) * 0.15), 19px); color: #fff; text-shadow: 0 1px 3px #000; }
 .u-atk { left: -4px; clip-path: polygon(50% 0, 100% 30%, 82% 100%, 18% 100%, 0 30%); background: radial-gradient(circle at 40% 30%, #ffe2a0, #d9982f 50%, #6a4010 90%); }
 .u-hp { right: -4px; border-radius: 50% 50% 45% 45% / 40% 40% 60% 60%; background: radial-gradient(circle at 40% 30%, #ffb3a0, #d5301c 50%, #5a0a04 90%); }
-.u-atk.up, .u-hp.up { color: #b8ffcc; }
+.u-atk.up, .u-hp.up { color: #fff; text-shadow: 0 0 6px #3fff8a, 0 0 2px #0a3a18, 0 1px 2px #000; }   /* white with a green glow: pale green on gold was unreadable */
 .u-hp.hurt { color: #ffd0c8; }
 .u-name { position: absolute; left: 14%; right: 14%; bottom: 0; height: 18px; display: none; }
 /* a unit's name shows on its nameplate while you point at it, pick it or aim at it (mouse; touch holds to read) */
@@ -118,3 +118,8 @@ button.ccard:hover { box-shadow: 0 22px 46px rgba(0, 0, 0, 0.6), 0 0 30px color-
 .ccard.base { background: linear-gradient(160deg, var(--gold-1), var(--gold-4) 45%, var(--gold-2)); }
 .ccard.base .inner { background: radial-gradient(circle at 50% 45%, #2b1d36, #0b0810 70%); display: grid; place-items: center; color: var(--gold-2); }
 .ccard.base .inner svg { width: 56%; }
+/* the element lives in the frame, not only in the type line: the nameplate and the inner border take its colour */
+.tcard .tc-name::before { background: linear-gradient(180deg, color-mix(in srgb, var(--el) 40%, #3a2f46), color-mix(in srgb, var(--el) 14%, #1a1422) 55%, #0e0a13); }
+.tcard .tc-frame::after { border-color: color-mix(in srgb, var(--el) 50%, rgba(255, 214, 140, 0.25)); }
+/* keyword tabs large enough to read on a unit */
+.u-kw i { font-size: clamp(9px, calc(var(--u, 84px) * 0.12), 12px); padding: 2px 5px; }

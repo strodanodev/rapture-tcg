@@ -20,7 +20,7 @@ _args = sys.argv[sys.argv.index("--") + 1:]
 out_dir, render_dir = _args[:2]
 DO_RENDER = "--no-render" not in _args
 RES = 512
-VERSION = 7
+VERSION = 8
 # the CC0 Poly Haven sets are Rapture Chess's (see its scripts/textures/README.txt); this script shares them
 TEX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rapture-chess", "scripts", "textures"))
 
@@ -297,6 +297,7 @@ def valhalla():
     STONE = tex_mat("vh_stone", "castle_wall_slates"); TILE["vh_stone"] = 2.6
     FLOOR = tex_mat("vh_floor", "monastery_stone_floor"); TILE["vh_floor"] = 3.2
     BLOCKS = tex_mat("vh_blocks", "medieval_blocks_05"); TILE["vh_blocks"] = 2.4
+    PILLAR = tex_mat("vh_pillar", "rock_face_03"); TILE["vh_pillar"] = 3.4   # hewn rock: slate brick read as chimney stacks
     DARK = mat("vh_dark", (0.16, 0.14, 0.13), 0.1, 0.7)
     GOLD = mat("rapture_gold", (1.0, 0.72, 0.28), 1.0, 0.3)
     FIRE = mat("vh_fire", (0.1, 0.05, 0.02), 0.0, 0.8, (1.0, 0.55, 0.15), 6.0)
@@ -321,7 +322,7 @@ def valhalla():
         a = i * math.tau / n + math.pi / 16
         x, y = 15.2 * math.cos(a), 15.2 * math.sin(a)
         prof = [(0, 0), (0.75, 0), (0.75, 0.25), (0.55, 0.3), (0.55, 6.6), (0.7, 6.8), (0.7, 7.1), (0.85, 7.2), (0.85, 7.5), (0, 7.5)]
-        spin(f"Pillar_{i}", prof, STONE, segments=12, loc=(x, y, 0.2), rot=a, parent=root, bev=0.02)
+        spin(f"Pillar_{i}", prof, PILLAR, segments=16, loc=(x, y, 0.2), rot=a, parent=root, bev=0.02)
         spin(f"PillarCap_{i}", [(0.5, 6.55), (0.72, 6.55), (0.72, 6.65), (0.5, 6.65)], GOLD, segments=12, loc=(x, y, 0.2), parent=root)
         # a gold band, not a glowing one: lit pale blue, the bands read as unlit plastic tape
         spin(f"PillarRune_{i}", [(0.56, 3.0), (0.58, 3.0), (0.58, 3.25), (0.56, 3.25)], GOLD, segments=12, loc=(x, y, 0.2), parent=root)
@@ -420,12 +421,18 @@ def underworld():
             bh = random.uniform(1.2, 2.8)
             shard(f"SpireShard_{i}_{k}", bh, bh * 0.3, OBSIDIAN, (x + 1.9 * math.cos(ba), y + 1.9 * math.sin(ba), -0.4),
                   (math.radians(random.uniform(-30, 30)), math.radians(random.uniform(-30, 30)), ba), root)
-    # bone totems and boulders near the board
+    # bone tusks and boulders near the board: great curved tusks breaking out of the ash, leaning in toward the dais
+    # (stacked-sphere totems read as toys)
     for i in range(8):
         a = i * math.tau / 8 + 0.2
-        t = spin(f"Totem_{i}", [(0, 0), (0.34, 0), (0.24, 0.35), (0.32, 0.7), (0.2, 1.0), (0.3, 1.35), (0.18, 1.7), (0.28, 2.05), (0.17, 2.4), (0.3, 2.7), (0.36, 2.95), (0.22, 3.15), (0, 3.25)], BONE, segments=10, loc=(11.5 * math.cos(a), 11.5 * math.sin(a), 0.1), parent=root)
-        # stacked vertebrae, worn: the profile bulges at each joint, Clouds noise pits the surface
-        sculpt(t, 0.07, 0.18, levels=1, kind="CLOUDS")
+        h = 2.6 + (i % 3) * 0.6
+        t = spin(f"Tusk_{i}", [(0, 0), (0.42, 0), (0.38, h * 0.25), (0.3, h * 0.5), (0.2, h * 0.75), (0.08, h * 0.95), (0, h)], BONE, segments=12, loc=(11.5 * math.cos(a), 11.5 * math.sin(a), -0.55), rot=a, parent=root)
+        # a curve: bend the tusk toward the dais, more toward its tip
+        for v in t.data.vertices:
+            k = max(0.0, v.co.z / h) ** 2
+            v.co.x -= 0.9 * k
+        t.rotation_euler = (0, math.radians(-12 - (i % 2) * 8), a + math.pi)
+        sculpt(t, 0.04, 0.2, levels=1, kind="CLOUDS")
     for i in range(12):
         a = random.uniform(0, math.tau)
         r = random.uniform(10.5, 15.0)
@@ -441,6 +448,20 @@ def underworld():
             h = random.uniform(0.7, 2.2)
             shard(f"Crystal_{c}_{k}", h, h * 0.18, CRYSTAL, (cx + random.uniform(-0.6, 0.6), cy + random.uniform(-0.6, 0.6), 0.0),
                   (math.radians(random.uniform(-25, 25)), math.radians(random.uniform(-25, 25)), random.uniform(0, math.tau)), root)
+    # lava fissures: jagged glowing cracks branching across the field, so the floor itself is lit from below
+    fr = random.Random(41)
+    for c in range(16):
+        a = c * math.tau / 16 + fr.uniform(-0.15, 0.15)
+        r0 = fr.uniform(9.2, 10.5)
+        x, y, heading = r0 * math.cos(a), r0 * math.sin(a), a + fr.uniform(-0.4, 0.4)
+        for k in range(fr.randint(4, 7)):
+            seg = fr.uniform(1.0, 2.2)
+            heading += fr.uniform(-0.6, 0.6)
+            nx, ny = x + seg * math.cos(heading), y + seg * math.sin(heading)
+            box(f"Fissure_{c}_{k}", (seg + 0.12, fr.uniform(0.1, 0.22), 0.04), ((x + nx) / 2, (y + ny) / 2, -0.285), LAVA, rot=(0, 0, heading), parent=root)
+            x, y = nx, ny
+            if math.hypot(x, y) > 21.0:
+                break
     # a cracked dome of ribs overhead
     for i in range(12):
         a = i * math.tau / 12
